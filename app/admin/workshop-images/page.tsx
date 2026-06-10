@@ -4,15 +4,14 @@ import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { connectToDatabase, hasDatabaseConfig } from "@/lib/db/connect";
+import { tryConnectToDatabase } from "@/lib/db/connect";
 import { serializeWorkshopImage } from "@/lib/data/serialize";
 import { WorkshopImage } from "@/models/WorkshopImage";
 
 export default async function WorkshopImagesPage() {
   let images: ReturnType<typeof serializeWorkshopImage>[] = [];
 
-  if (hasDatabaseConfig()) {
-    await connectToDatabase();
+  if (await tryConnectToDatabase()) {
     const docs = await WorkshopImage.find({}).sort({ order: 1 }).lean();
     images = docs.map((doc) => serializeWorkshopImage(doc as Record<string, unknown>));
   }

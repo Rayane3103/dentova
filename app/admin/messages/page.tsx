@@ -1,14 +1,13 @@
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { Card } from "@/components/ui/Card";
-import { connectToDatabase, hasDatabaseConfig } from "@/lib/db/connect";
+import { tryConnectToDatabase } from "@/lib/db/connect";
 import { ContactMessage } from "@/models/ContactMessage";
 
 export default async function MessagesPage() {
   let messages: Array<Record<string, unknown>> = [];
 
-  if (hasDatabaseConfig()) {
-    await connectToDatabase();
+  if (await tryConnectToDatabase()) {
     messages = await ContactMessage.find({}).sort({ createdAt: -1 }).lean();
   }
 

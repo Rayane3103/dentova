@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { MentorForm } from "@/components/admin/MentorForm";
-import { connectToDatabase, hasDatabaseConfig } from "@/lib/db/connect";
+import { tryConnectToDatabase } from "@/lib/db/connect";
 import { Mentor } from "@/models/Mentor";
 
 type EditMentorPageProps = {
@@ -11,11 +11,10 @@ type EditMentorPageProps = {
 export default async function EditMentorPage({ params }: EditMentorPageProps) {
   const { id } = await params;
 
-  if (!hasDatabaseConfig()) {
+  if (!(await tryConnectToDatabase())) {
     notFound();
   }
 
-  await connectToDatabase();
   const mentor = (await Mentor.findById(id).lean()) as Record<string, unknown> | null;
 
   if (!mentor) {

@@ -1,14 +1,13 @@
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { Card } from "@/components/ui/Card";
-import { connectToDatabase, hasDatabaseConfig } from "@/lib/db/connect";
+import { tryConnectToDatabase } from "@/lib/db/connect";
 import { ClientSignup } from "@/models/ClientSignup";
 
 export default async function SignupsPage() {
   let signups: Array<Record<string, unknown>> = [];
 
-  if (hasDatabaseConfig()) {
-    await connectToDatabase();
+  if (await tryConnectToDatabase()) {
     signups = await ClientSignup.find({}).sort({ createdAt: -1 }).lean();
   }
 

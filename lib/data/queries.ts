@@ -1,4 +1,4 @@
-import { connectToDatabase, hasDatabaseConfig } from "@/lib/db/connect";
+import { tryConnectToDatabase } from "@/lib/db/connect";
 import {
   serializeCategory,
   serializeCourse,
@@ -16,17 +16,7 @@ import { WorkshopImage } from "@/models/WorkshopImage";
 import type { Category as CategoryType, Course as CourseType } from "@/types";
 
 async function ensureDb() {
-  if (!hasDatabaseConfig()) {
-    return false;
-  }
-
-  try {
-    await connectToDatabase();
-    return true;
-  } catch (error) {
-    console.error("[dentova] MongoDB unavailable:", error);
-    return false;
-  }
+  return tryConnectToDatabase();
 }
 
 function resolveCategory(doc: Record<string, unknown>) {

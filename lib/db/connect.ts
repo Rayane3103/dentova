@@ -46,3 +46,17 @@ export async function connectToDatabase() {
 export function hasDatabaseConfig() {
   return Boolean(process.env.MONGODB_URI);
 }
+
+export async function tryConnectToDatabase() {
+  if (!hasDatabaseConfig()) {
+    return false;
+  }
+
+  try {
+    await connectToDatabase();
+    return true;
+  } catch (error) {
+    console.error("[dentova] MongoDB unavailable:", error);
+    return false;
+  }
+}

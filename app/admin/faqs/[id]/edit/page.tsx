@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { FAQForm } from "@/components/admin/FAQForm";
-import { connectToDatabase, hasDatabaseConfig } from "@/lib/db/connect";
+import { tryConnectToDatabase } from "@/lib/db/connect";
 import { FAQ } from "@/models/FAQ";
 
 type EditFaqPageProps = {
@@ -11,11 +11,10 @@ type EditFaqPageProps = {
 export default async function EditFaqPage({ params }: EditFaqPageProps) {
   const { id } = await params;
 
-  if (!hasDatabaseConfig()) {
+  if (!(await tryConnectToDatabase())) {
     notFound();
   }
 
-  await connectToDatabase();
   const faq = (await FAQ.findById(id).lean()) as Record<string, unknown> | null;
 
   if (!faq) {

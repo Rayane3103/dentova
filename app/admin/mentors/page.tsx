@@ -4,15 +4,14 @@ import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { connectToDatabase, hasDatabaseConfig } from "@/lib/db/connect";
+import { tryConnectToDatabase } from "@/lib/db/connect";
 import { serializeMentor } from "@/lib/data/serialize";
 import { Mentor } from "@/models/Mentor";
 
 export default async function AdminMentorsPage() {
   let mentors: ReturnType<typeof serializeMentor>[] = [];
 
-  if (hasDatabaseConfig()) {
-    await connectToDatabase();
+  if (await tryConnectToDatabase()) {
     const docs = await Mentor.find({}).sort({ order: 1 }).lean();
     mentors = docs.map((doc) => serializeMentor(doc as Record<string, unknown>));
   }

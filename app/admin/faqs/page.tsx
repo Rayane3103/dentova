@@ -3,15 +3,14 @@ import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { connectToDatabase, hasDatabaseConfig } from "@/lib/db/connect";
+import { tryConnectToDatabase } from "@/lib/db/connect";
 import { serializeFAQ } from "@/lib/data/serialize";
 import { FAQ } from "@/models/FAQ";
 
 export default async function AdminFaqsPage() {
   let faqs: ReturnType<typeof serializeFAQ>[] = [];
 
-  if (hasDatabaseConfig()) {
-    await connectToDatabase();
+  if (await tryConnectToDatabase()) {
     const docs = await FAQ.find({}).sort({ sortOrder: 1 }).lean();
     faqs = docs.map((doc) => serializeFAQ(doc as Record<string, unknown>));
   }

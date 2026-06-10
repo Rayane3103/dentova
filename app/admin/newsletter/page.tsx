@@ -1,14 +1,13 @@
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { Card } from "@/components/ui/Card";
-import { connectToDatabase, hasDatabaseConfig } from "@/lib/db/connect";
+import { tryConnectToDatabase } from "@/lib/db/connect";
 import { NewsletterSubscriber } from "@/models/NewsletterSubscriber";
 
 export default async function NewsletterPage() {
   let subscribers: Array<Record<string, unknown>> = [];
 
-  if (hasDatabaseConfig()) {
-    await connectToDatabase();
+  if (await tryConnectToDatabase()) {
     subscribers = await NewsletterSubscriber.find({}).sort({ createdAt: -1 }).lean();
   }
 

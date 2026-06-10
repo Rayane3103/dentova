@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { WorkshopImageForm } from "@/components/admin/WorkshopImageForm";
-import { connectToDatabase, hasDatabaseConfig } from "@/lib/db/connect";
+import { tryConnectToDatabase } from "@/lib/db/connect";
 import { WorkshopImage } from "@/models/WorkshopImage";
 
 type EditWorkshopImagePageProps = {
@@ -11,11 +11,10 @@ type EditWorkshopImagePageProps = {
 export default async function EditWorkshopImagePage({ params }: EditWorkshopImagePageProps) {
   const { id } = await params;
 
-  if (!hasDatabaseConfig()) {
+  if (!(await tryConnectToDatabase())) {
     notFound();
   }
 
-  await connectToDatabase();
   const image = (await WorkshopImage.findById(id).lean()) as Record<string, unknown> | null;
 
   if (!image) {

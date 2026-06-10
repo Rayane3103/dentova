@@ -1,14 +1,13 @@
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { Card } from "@/components/ui/Card";
-import { connectToDatabase, hasDatabaseConfig } from "@/lib/db/connect";
+import { tryConnectToDatabase } from "@/lib/db/connect";
 import { Reservation } from "@/models/Reservation";
 
 export default async function ReservationsPage() {
   let reservations: Array<Record<string, unknown>> = [];
 
-  if (hasDatabaseConfig()) {
-    await connectToDatabase();
+  if (await tryConnectToDatabase()) {
     reservations = await Reservation.find({}).populate("courseId").sort({ createdAt: -1 }).lean();
   }
 
