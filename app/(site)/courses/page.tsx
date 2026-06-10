@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { CoursesSection } from "@/components/public/CoursesSection";
 import { getCategories, getPublishedCourses } from "@/lib/data/queries";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Prochains cours"
 };

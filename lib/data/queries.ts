@@ -20,8 +20,13 @@ async function ensureDb() {
     return false;
   }
 
-  await connectToDatabase();
-  return true;
+  try {
+    await connectToDatabase();
+    return true;
+  } catch (error) {
+    console.error("[dentova] MongoDB unavailable:", error);
+    return false;
+  }
 }
 
 function resolveCategory(doc: Record<string, unknown>) {

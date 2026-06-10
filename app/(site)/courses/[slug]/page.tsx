@@ -18,10 +18,11 @@ import { Container } from "@/components/ui/Container";
 import { includedBenefits } from "@/lib/constants";
 import {
   getActiveWorkshopImages,
-  getCourseBySlug,
-  getPublishedCourses
+  getCourseBySlug
 } from "@/lib/data/queries";
 import { formatCourseDate, formatPrice } from "@/lib/format";
+
+export const dynamic = "force-dynamic";
 
 type CoursePageProps = {
   params: Promise<{
@@ -38,11 +39,6 @@ export async function generateMetadata({
   return {
     title: course?.title || "Cours"
   };
-}
-
-export async function generateStaticParams() {
-  const courses = await getPublishedCourses();
-  return courses.map((course) => ({ slug: course.slug }));
 }
 
 export default async function CourseDetailPage({ params }: CoursePageProps) {

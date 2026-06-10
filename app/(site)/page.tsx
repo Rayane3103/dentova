@@ -14,6 +14,8 @@ import {
   getPublishedTestimonials
 } from "@/lib/data/queries";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage() {
   const [courses, categories, testimonials, faqs, gallery] = await Promise.all([
     getPublishedCourses({ homepageOnly: true }),
