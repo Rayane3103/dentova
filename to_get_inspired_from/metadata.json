@@ -1,0 +1,6 @@
+{
+  "name": "Dentova Events",
+  "description": "Redesigned modern website for Dentova Events - dental training and events in Algeria.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

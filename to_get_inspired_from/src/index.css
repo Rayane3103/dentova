@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", "Inter", sans-serif;
+
+  /* Premium Dentova Color Scheme - Majestic Purple & Vibrant Cyan of dentovaevents.com */
+  --color-dentova-navy-50: #f7f4fc;
+  --color-dentova-navy-100: #ece7f7;
+  --color-dentova-navy-200: #d6cee8;
+  --color-dentova-navy-300: #b5a8d4;
+  --color-dentova-navy-400: #907bbe;
+  --color-dentova-navy-500: #715da5;
+  --color-dentova-navy-600: #5c478a;
+  --color-dentova-navy-700: #4a3475;
+  --color-dentova-navy-800: #3c2463;
+  --color-dentova-navy-900: #2c1251; /* Classic Hero Purple Brand */
+  --color-dentova-navy-950: #1d0938; /* Midnight Purple */
+
+  --color-dentova-teal-50: #eefbfc;
+  --color-dentova-teal-100: #d5f4fb;
+  --color-dentova-teal-200: #afe9f7;
+  --color-dentova-teal-300: #78dbf4;
+  --color-dentova-teal-400: #36c9ee;
+  --color-dentova-teal-500: #30bce2; /* Vibrant Cyan/Teal Brand */
+  --color-dentova-teal-600: #1e99bc;
+  --color-dentova-teal-700: #1c7c9b;
+  --color-dentova-teal-800: #1d657d;
+  --color-dentova-teal-900: #1c5367;
+  --color-dentova-teal-950: #0d3240;
+}
+
+/* Base resets & Custom scrollbar and highlights */
+html {
+  scroll-behavior: smooth;
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background-color: var(--color-dentova-teal-500);
+  color: white;
+}
+
+/* Smooth custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-dentova-navy-100);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-dentova-teal-600);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-dentova-teal-700);
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+}
+
