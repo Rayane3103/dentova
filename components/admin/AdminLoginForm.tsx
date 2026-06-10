@@ -30,7 +30,8 @@ export function AdminLoginForm() {
     });
 
     if (!response.ok) {
-      toast.error("Identifiants admin invalides.");
+      const data = (await response.json().catch(() => null)) as { error?: string } | null;
+      toast.error(data?.error || "Identifiants admin invalides.");
       return;
     }
 

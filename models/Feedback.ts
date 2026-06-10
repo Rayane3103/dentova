@@ -8,7 +8,9 @@ const FeedbackSchema = new Schema(
     fullName: { type: String, required: true, trim: true },
     message: { type: String, required: true },
     phone: { type: String, trim: true },
-    rating: { type: Number, min: 1, max: 5 }
+    rating: { type: Number, min: 1, max: 5 },
+    role: { type: String, trim: true },
+    showOnHomepage: { type: Boolean, default: false }
   },
   { timestamps: true }
 );

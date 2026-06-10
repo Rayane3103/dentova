@@ -14,11 +14,18 @@ export async function POST(request: Request) {
   }
 
   if (!hasDatabaseConfig()) {
-    return NextResponse.json({ mode: "preview", ok: true }, { status: 202 });
+    return NextResponse.json(
+      { error: "Le service d'avis n'est pas disponible pour le moment." },
+      { status: 503 }
+    );
   }
 
   await connectToDatabase();
-  const feedback = await Feedback.create({ ...parsed.data, approved: false });
+  const feedback = await Feedback.create({
+    ...parsed.data,
+    approved: false,
+    showOnHomepage: false
+  });
 
   return NextResponse.json({ feedback }, { status: 201 });
 }

@@ -4,8 +4,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { AlertCircle, ChevronDown, ChevronUp, HelpCircle, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Container } from "@/components/ui/Container";
-import { faqs } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import type { FAQItem } from "@/types";
 
 const categories = [
   { id: "all", label: "Toutes les Questions" },
@@ -15,7 +15,7 @@ const categories = [
   { id: "Paiement", label: "Paiement & Cursus" }
 ];
 
-export function FAQSection() {
+export function FAQSection({ faqs }: { faqs: FAQItem[] }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const [expandedId, setExpandedId] = useState<string | null>(faqs[0]?.question ?? null);
@@ -29,7 +29,7 @@ export function FAQSection() {
         faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
       return matchCategory && matchQuery;
     });
-  }, [activeCategory, searchQuery]);
+  }, [activeCategory, faqs, searchQuery]);
 
   return (
     <section

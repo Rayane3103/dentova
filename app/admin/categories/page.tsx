@@ -1,48 +1,45 @@
-import Link from "next/link";
+import { AdminDeleteButton } from "@/components/admin/AdminDeleteButton";
+import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { placeholderCategories } from "@/lib/constants";
+import { getCategories } from "@/lib/data/queries";
 
-export default function CategoriesPage() {
+export default async function AdminCategoriesPage() {
+  const categories = await getCategories();
+
   return (
     <AdminShell>
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-4xl font-extrabold text-dentova-navy">
-          Categories
-        </h1>
-        <Link
-          className="rounded-lg bg-dentova-magenta px-5 py-2 font-bold text-white"
-          href="/admin/categories/new"
-        >
-          Add New Category
-        </Link>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <AdminHeader title="Categories" />
+        <Button asChild href="/admin/categories/new">
+          Nouvelle categorie
+        </Button>
       </div>
       <Card className="mt-8 overflow-hidden rounded-xl p-6">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b border-dentova-navy/10">
-              <th className="py-3">Name</th>
-              <th className="py-3">Slug</th>
-              <th className="py-3">Sort</th>
-            </tr>
-          </thead>
-          <tbody>
-            {placeholderCategories.map((category) => (
-              <tr
-                className="border-b border-dentova-navy/10 last:border-0"
+        {categories.length === 0 ? (
+          <p className="text-dentova-muted">Aucune categorie creee.</p>
+        ) : (
+          <div className="space-y-3">
+            {categories.map((category) => (
+              <div
+                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dentova-navy/10 p-4"
                 key={category.id}
               >
-                <td className="py-3 font-bold text-dentova-navy">
-                  {category.name}
-                </td>
-                <td className="py-3 text-dentova-ink/70">{category.slug}</td>
-                <td className="py-3 text-dentova-ink/70">
-                  {category.sortOrder}
-                </td>
-              </tr>
+                <div>
+                  <p className="font-bold text-dentova-navy">{category.name}</p>
+                  <p className="text-sm text-dentova-muted">{category.description}</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button asChild href={`/admin/categories/${category.id}/edit`} size="sm" variant="outline">
+                    Modifier
+                  </Button>
+                  <AdminDeleteButton endpoint={`/api/admin/categories/${category.id}`} />
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        )}
       </Card>
     </AdminShell>
   );

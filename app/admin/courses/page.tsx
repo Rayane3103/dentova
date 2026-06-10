@@ -1,13 +1,21 @@
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { AdminTable } from "@/components/admin/AdminTable";
-import { placeholderCourses } from "@/lib/constants";
+import { Button } from "@/components/ui/Button";
+import { getAllCourses } from "@/lib/data/queries";
 
-export default function AdminCoursesPage() {
+export default async function AdminCoursesPage() {
+  const courses = await getAllCourses();
+
   return (
     <AdminShell>
-      <AdminHeader title="Manage Courses" />
-      <AdminTable courses={placeholderCourses} />
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <AdminHeader title="Gestion des cours" />
+        <Button asChild href="/admin/courses/new">
+          Nouveau cours
+        </Button>
+      </div>
+      <AdminTable courses={courses} />
     </AdminShell>
   );
 }

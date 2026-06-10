@@ -17,7 +17,20 @@ export async function POST(request: Request) {
 
   if (!hasDatabaseConfig()) {
     return NextResponse.json(
-      { error: "MongoDB is required for admin login." },
+      {
+        error:
+          "MongoDB n'est pas configure sur Vercel. Ajoutez MONGODB_URI dans les variables d'environnement."
+      },
+      { status: 503 }
+    );
+  }
+
+  if (!process.env.ADMIN_JWT_SECRET) {
+    return NextResponse.json(
+      {
+        error:
+          "ADMIN_JWT_SECRET est manquant. Ajoutez une cle secrete dans les variables d'environnement Vercel."
+      },
       { status: 503 }
     );
   }
@@ -28,13 +41,19 @@ export async function POST(request: Request) {
   });
 
   if (!admin) {
-    return NextResponse.json({ error: "Invalid credentials." }, { status: 401 });
+    return NextResponse.json(
+      {
+        error:
+          "Identifiants invalides. Si c'est la premiere connexion, executez npm run seed:admin avec vos variables ADMIN_EMAIL et ADMIN_PASSWORD."
+      },
+      { status: 401 }
+    );
   }
 
   const valid = await verifyPassword(parsed.data.password, admin.passwordHash);
 
   if (!valid) {
-    return NextResponse.json({ error: "Invalid credentials." }, { status: 401 });
+    return NextResponse.json({ error: "Identifiants invalides." }, { status: 401 });
   }
 
   await setSessionCookie({

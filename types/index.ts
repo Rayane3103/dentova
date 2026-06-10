@@ -50,6 +50,19 @@ export type Testimonial = {
   rating: number;
 };
 
+export type Mentor = {
+  id: string;
+  name: string;
+  title: string;
+  bio?: string;
+  specialty?: string;
+  imageUrl: string;
+  imagePublicId?: string;
+  order: number;
+  active: boolean;
+  showOnHomepage: boolean;
+};
+
 export type FAQItem = {
   question: string;
   answer: string;

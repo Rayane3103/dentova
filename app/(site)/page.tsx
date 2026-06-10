@@ -6,17 +6,32 @@ import { HeroSection } from "@/components/public/HeroSection";
 import { ImageGallery } from "@/components/public/ImageGallery";
 import { TestimonialsSection } from "@/components/public/TestimonialsSection";
 import { WhyParticipateSection } from "@/components/public/WhyParticipateSection";
+import {
+  getActiveWorkshopImages,
+  getCategories,
+  getPublishedCourses,
+  getPublishedFaqs,
+  getPublishedTestimonials
+} from "@/lib/data/queries";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [courses, categories, testimonials, faqs, gallery] = await Promise.all([
+    getPublishedCourses({ homepageOnly: true }),
+    getCategories(),
+    getPublishedTestimonials(),
+    getPublishedFaqs(),
+    getActiveWorkshopImages()
+  ]);
+
   return (
     <main className="bg-white">
       <HeroSection />
       <WhyParticipateSection />
       <AboutSection />
-      <CoursesSection />
-      <TestimonialsSection />
-      <FAQSection />
-      <ImageGallery />
+      <CoursesSection categories={categories} courses={courses} />
+      <TestimonialsSection testimonials={testimonials} />
+      <FAQSection faqs={faqs} />
+      <ImageGallery images={gallery} />
       <ContactSection />
     </main>
   );

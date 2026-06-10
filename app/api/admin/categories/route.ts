@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { connectToDatabase, hasDatabaseConfig } from "@/lib/db/connect";
-import { placeholderCategories } from "@/lib/constants";
+import { getCategories } from "@/lib/data/queries";
 import { slugify } from "@/lib/slug";
 import { categorySchema } from "@/lib/validators/category";
 import { Category } from "@/models/Category";
@@ -9,13 +9,7 @@ import { Category } from "@/models/Category";
 export const runtime = "nodejs";
 
 export async function GET() {
-  if (!hasDatabaseConfig()) {
-    return NextResponse.json({ categories: placeholderCategories });
-  }
-
-  await connectToDatabase();
-  const categories = await Category.find({}).sort({ sortOrder: 1, name: 1 }).lean();
-
+  const categories = await getCategories();
   return NextResponse.json({ categories });
 }
 
@@ -28,7 +22,10 @@ export async function POST(request: Request) {
   }
 
   if (!hasDatabaseConfig()) {
-    return NextResponse.json({ mode: "preview", ok: true }, { status: 202 });
+    return NextResponse.json(
+      { error: "MongoDB is required to create categories." },
+      { status: 503 }
+    );
   }
 
   await connectToDatabase();

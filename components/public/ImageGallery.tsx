@@ -5,14 +5,14 @@ import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { SectionHeader } from "@/components/public/SectionHeader";
 import { Container } from "@/components/ui/Container";
-import { workshopImages } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import type { WorkshopImage } from "@/types";
 
 const SLIDE_INTERVAL_MS = 5000;
-const GALLERY_IMAGES = workshopImages.slice(0, 5);
-const SIDEBAR_IMAGES = GALLERY_IMAGES.slice(0, 4);
 
-export function ImageGallery() {
+export function ImageGallery({ images }: { images: WorkshopImage[] }) {
+  const galleryImages = images.slice(0, 5);
+  const sidebarImages = galleryImages.slice(0, 4);
   const [activeIndex, setActiveIndex] = useState(0);
   const [timerKey, setTimerKey] = useState(0);
 
@@ -22,19 +22,23 @@ export function ImageGallery() {
   }, []);
 
   const nextSlide = useCallback(() => {
-    setActiveIndex((prev) => (prev + 1) % GALLERY_IMAGES.length);
+    setActiveIndex((prev) => (prev + 1) % galleryImages.length);
     setTimerKey((key) => key + 1);
-  }, []);
+  }, [galleryImages.length]);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % GALLERY_IMAGES.length);
+      setActiveIndex((prev) => (prev + 1) % galleryImages.length);
     }, SLIDE_INTERVAL_MS);
 
     return () => clearInterval(timer);
-  }, [timerKey]);
+  }, [galleryImages.length, timerKey]);
 
-  const activeImage = GALLERY_IMAGES[activeIndex];
+  const activeImage = galleryImages[activeIndex];
+
+  if (galleryImages.length === 0 || !activeImage) {
+    return null;
+  }
 
   return (
     <section className="bg-gradient-to-b from-white to-dentova-navy-50 px-6 py-24">
@@ -54,12 +58,7 @@ export function ImageGallery() {
         </div>
 
         <div className="mt-10 flex flex-col gap-4 lg:flex-row lg:gap-5">
-          <button
-            aria-label="Afficher l'image suivante"
-            className="group relative min-h-[280px] flex-[7] overflow-hidden rounded-3xl bg-dentova-navy-900 text-left shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dentova-teal-500 focus-visible:ring-offset-2 sm:min-h-[360px] lg:min-h-[420px]"
-            onClick={nextSlide}
-            type="button"
-          >
+          <div className="group relative min-h-[280px] flex-[7] overflow-hidden rounded-3xl bg-dentova-navy-900 text-left shadow-card sm:min-h-[360px] lg:min-h-[420px]">
             <AnimatePresence mode="wait">
               <motion.div
                 animate={{ opacity: 1 }}
@@ -78,7 +77,7 @@ export function ImageGallery() {
                   src={activeImage.imageUrl}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-dentova-navy-950/85 via-dentova-navy-950/10 to-transparent" />
-                <div className="absolute inset-x-0 bottom-14 px-6 pb-2 text-white">
+                <div className="pointer-events-none absolute inset-x-0 bottom-14 px-6 pb-2 text-white">
                   <p className="text-2xl font-extrabold leading-7 sm:text-3xl">
                     {activeImage.title}
                   </p>
@@ -91,11 +90,19 @@ export function ImageGallery() {
               </motion.div>
             </AnimatePresence>
 
+            <button
+              aria-label="Afficher l'image suivante"
+              className="absolute inset-x-0 top-0 bottom-12 z-[1] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-dentova-teal-500"
+              onClick={nextSlide}
+              type="button"
+            />
+
             <div
-              className="absolute inset-x-0 bottom-5 flex justify-center gap-2"
-              onClick={(event) => event.stopPropagation()}
+              aria-label="Selection de l'image"
+              className="absolute inset-x-0 bottom-5 z-[2] flex justify-center gap-2"
+              role="group"
             >
-              {GALLERY_IMAGES.map((image, index) => (
+              {galleryImages.map((image, index) => (
                 <button
                   aria-label={`Afficher ${image.title}`}
                   aria-pressed={index === activeIndex}
@@ -111,10 +118,10 @@ export function ImageGallery() {
                 />
               ))}
             </div>
-          </button>
+          </div>
 
           <div className="grid flex-[3] grid-cols-2 gap-3 sm:gap-4">
-            {SIDEBAR_IMAGES.map((image, index) => (
+            {sidebarImages.map((image, index) => (
               <button
                 aria-label={`Afficher ${image.title}`}
                 aria-pressed={index === activeIndex}

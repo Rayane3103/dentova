@@ -7,6 +7,7 @@ const CourseSchema = new Schema(
     contactPhone: { type: String, required: true, trim: true },
     date: { type: Date, required: true },
     description: { type: String, required: true },
+    excerpt: { type: String, trim: true },
     featured: { type: Boolean, default: false },
     imagePublicId: { type: String },
     imageUrl: { type: String, required: true },
@@ -17,6 +18,7 @@ const CourseSchema = new Schema(
     published: { type: Boolean, default: true },
     showOnHomepage: { type: Boolean, default: true },
     slug: { type: String, required: true, unique: true, trim: true },
+    subtitle: { type: String, trim: true },
     time: { type: String, trim: true },
     title: { type: String, required: true, trim: true }
   },

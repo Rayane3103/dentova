@@ -10,7 +10,7 @@ export function CourseCard({ course }: { course: Course }) {
       className="group relative flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-dentova-navy-950 shadow-xl transition-all duration-500 hover:border-dentova-teal-400/40"
       href={`/courses/${course.slug}`}
     >
-      <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden">
+      <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden">
         <Image
           alt={course.title}
           className="object-cover transition-transform duration-700 ease-out saturate-75 group-hover:scale-105"

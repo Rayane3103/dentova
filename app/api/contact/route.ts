@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase, hasDatabaseConfig } from "@/lib/db/connect";
+import { sendContactNotification } from "@/lib/mail";
 import { contactSchema } from "@/lib/validators/contact";
 import { ContactMessage } from "@/models/ContactMessage";
 
@@ -14,11 +15,29 @@ export async function POST(request: Request) {
   }
 
   if (!hasDatabaseConfig()) {
-    return NextResponse.json({ mode: "preview", ok: true }, { status: 202 });
+    return NextResponse.json(
+      { error: "Le service de contact n'est pas disponible pour le moment." },
+      { status: 503 }
+    );
   }
 
   await connectToDatabase();
   const message = await ContactMessage.create(parsed.data);
 
-  return NextResponse.json({ message }, { status: 201 });
+  let emailSent = false;
+
+  try {
+    const emailResult = await sendContactNotification(parsed.data);
+    emailSent = emailResult.sent;
+  } catch {
+    emailSent = false;
+  }
+
+  return NextResponse.json(
+    {
+      message,
+      emailSent
+    },
+    { status: 201 }
+  );
 }

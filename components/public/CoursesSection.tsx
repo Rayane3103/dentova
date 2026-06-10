@@ -5,8 +5,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import { CourseCard } from "@/components/public/CourseCard";
 import { Container } from "@/components/ui/Container";
-import { placeholderCategories, placeholderCourses, siteConfig } from "@/lib/constants";
+import { siteConfig } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import type { Category, Course } from "@/types";
 
 const locations = [
   { id: "all", label: "Pays Entier" },
@@ -15,20 +16,28 @@ const locations = [
   { id: "Constantine", label: "Constantine" }
 ];
 
-export function CoursesSection({ limit }: { limit?: number }) {
+export function CoursesSection({
+  categories: initialCategories,
+  courses: initialCourses,
+  limit
+}: {
+  categories: Category[];
+  courses: Course[];
+  limit?: number;
+}) {
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeLocation, setActiveLocation] = useState("all");
 
   const categories = [
     { id: "all", label: "Toutes" },
-    ...placeholderCategories.map((cat) => ({
+    ...initialCategories.map((cat) => ({
       id: cat.slug,
       label: cat.name
     }))
   ];
 
   const courses = useMemo(() => {
-    const filtered = placeholderCourses.filter((course) => {
+    const filtered = initialCourses.filter((course) => {
       const matchCategory =
         activeCategory === "all" || course.category.slug === activeCategory;
       const matchLocation =
@@ -36,7 +45,7 @@ export function CoursesSection({ limit }: { limit?: number }) {
       return matchCategory && matchLocation;
     });
     return typeof limit === "number" ? filtered.slice(0, limit) : filtered;
-  }, [activeCategory, activeLocation, limit]);
+  }, [activeCategory, activeLocation, initialCourses, limit]);
 
   return (
     <section

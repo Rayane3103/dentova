@@ -15,11 +15,12 @@ import { ImageGallery } from "@/components/public/ImageGallery";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Container } from "@/components/ui/Container";
+import { includedBenefits } from "@/lib/constants";
 import {
-  includedBenefits,
-  placeholderCourses,
-  workshopImages
-} from "@/lib/constants";
+  getActiveWorkshopImages,
+  getCourseBySlug,
+  getPublishedCourses
+} from "@/lib/data/queries";
 import { formatCourseDate, formatPrice } from "@/lib/format";
 
 type CoursePageProps = {
@@ -32,20 +33,24 @@ export async function generateMetadata({
   params
 }: CoursePageProps): Promise<Metadata> {
   const { slug } = await params;
-  const course = placeholderCourses.find((item) => item.slug === slug);
+  const course = await getCourseBySlug(slug);
 
   return {
     title: course?.title || "Cours"
   };
 }
 
-export function generateStaticParams() {
-  return placeholderCourses.map((course) => ({ slug: course.slug }));
+export async function generateStaticParams() {
+  const courses = await getPublishedCourses();
+  return courses.map((course) => ({ slug: course.slug }));
 }
 
 export default async function CourseDetailPage({ params }: CoursePageProps) {
   const { slug } = await params;
-  const course = placeholderCourses.find((item) => item.slug === slug);
+  const [course, gallery] = await Promise.all([
+    getCourseBySlug(slug),
+    getActiveWorkshopImages()
+  ]);
 
   if (!course) {
     notFound();
@@ -71,9 +76,11 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
             <h1 className="mt-5 max-w-5xl text-5xl font-extrabold leading-[0.95] sm:text-7xl">
               {course.title}
             </h1>
-            <p className="mt-5 max-w-2xl text-2xl font-bold leading-8 text-white/70">
-              {course.subtitle}
-            </p>
+            {course.subtitle ? (
+              <p className="mt-5 max-w-2xl text-2xl font-bold leading-8 text-white/70">
+                {course.subtitle}
+              </p>
+            ) : null}
           </div>
           <div className="rounded-lg border border-white/20 bg-white/10 p-5 backdrop-blur-xl">
             <p className="text-base font-extrabold uppercase text-dentova-teal">
@@ -170,7 +177,7 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
         </aside>
       </Container>
 
-      {workshopImages.length > 0 ? <ImageGallery /> : null}
+      {gallery.length > 0 ? <ImageGallery images={gallery} /> : null}
     </main>
   );
 }

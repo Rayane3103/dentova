@@ -14,14 +14,17 @@ export async function POST(request: Request) {
   }
 
   if (!hasDatabaseConfig()) {
-    return NextResponse.json({ mode: "preview", ok: true }, { status: 202 });
+    return NextResponse.json(
+      { error: "Le service newsletter n'est pas disponible pour le moment." },
+      { status: 503 }
+    );
   }
 
   await connectToDatabase();
   const subscriber = await NewsletterSubscriber.findOneAndUpdate(
     { email: parsed.data.email.toLowerCase() },
-    { $setOnInsert: { email: parsed.data.email.toLowerCase() } },
-    { new: true, upsert: true }
+    { email: parsed.data.email.toLowerCase() },
+    { upsert: true, new: true }
   );
 
   return NextResponse.json({ subscriber }, { status: 201 });

@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { connectToDatabase, hasDatabaseConfig } from "@/lib/db/connect";
-import { placeholderCourses } from "@/lib/constants";
+import { getAllCourses } from "@/lib/data/queries";
 import { slugify } from "@/lib/slug";
 import { courseSchema } from "@/lib/validators/course";
 import { Course } from "@/models/Course";
@@ -9,13 +9,7 @@ import { Course } from "@/models/Course";
 export const runtime = "nodejs";
 
 export async function GET() {
-  if (!hasDatabaseConfig()) {
-    return NextResponse.json({ courses: placeholderCourses });
-  }
-
-  await connectToDatabase();
-  const courses = await Course.find({}).sort({ date: 1 }).lean();
-
+  const courses = await getAllCourses();
   return NextResponse.json({ courses });
 }
 
@@ -28,7 +22,10 @@ export async function POST(request: Request) {
   }
 
   if (!hasDatabaseConfig()) {
-    return NextResponse.json({ mode: "preview", ok: true }, { status: 202 });
+    return NextResponse.json(
+      { error: "MongoDB is required to create courses." },
+      { status: 503 }
+    );
   }
 
   await connectToDatabase();

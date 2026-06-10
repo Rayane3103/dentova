@@ -1,10 +1,14 @@
 import { FeedbackForm } from "@/components/forms/FeedbackForm";
 import { SectionHeader } from "@/components/public/SectionHeader";
 import { Container } from "@/components/ui/Container";
-import { testimonials } from "@/lib/constants";
+import type { Testimonial } from "@/types";
 import { Star } from "lucide-react";
 
-export function TestimonialsSection() {
+export function TestimonialsSection({
+  testimonials
+}: {
+  testimonials: Testimonial[];
+}) {
   return (
     <section className="bg-white px-6 py-20" id="testimonials">
       <Container>
@@ -17,7 +21,8 @@ export function TestimonialsSection() {
         />
 
         <div className="mx-auto mt-12 grid max-w-5xl gap-5 md:grid-cols-3">
-          {testimonials.map((testimonial) => (
+          {testimonials.length > 0 ? (
+            testimonials.map((testimonial) => (
             <article
               className="rounded-xl border border-dentova-navy-100 bg-white p-5"
               key={testimonial.id}
@@ -40,7 +45,12 @@ export function TestimonialsSection() {
                 &ldquo;{testimonial.message}&rdquo;
               </p>
             </article>
-          ))}
+            ))
+          ) : (
+            <p className="col-span-full text-center text-sm text-dentova-navy-500">
+              Les temoignages approuves apparaitront ici apres moderation.
+            </p>
+          )}
         </div>
 
         <div
