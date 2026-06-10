@@ -1,50 +1,58 @@
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminShell } from "@/components/admin/AdminShell";
-import { Card } from "@/components/ui/Card";
+import {
+  ReservationsCRM,
+  type ReservationRecord
+} from "@/components/admin/ReservationsCRM";
 import { tryConnectToDatabase } from "@/lib/db/connect";
+import { Course } from "@/models/Course";
 import { Reservation } from "@/models/Reservation";
 
+function serializeReservation(doc: Record<string, unknown>): ReservationRecord {
+  const course = doc.courseId as Record<string, unknown> | null;
+
+  return {
+    id: String(doc._id),
+    courseId: course?._id ? String(course._id) : String(doc.courseId),
+    courseTitle: course?.title ? String(course.title) : "Formation non renseignee",
+    createdAt: String(doc.createdAt),
+    email: String(doc.email),
+    fullName: String(doc.fullName),
+    message: doc.message ? String(doc.message) : undefined,
+    phone: String(doc.phone),
+    profession: doc.profession ? String(doc.profession) : undefined,
+    status: doc.status as ReservationRecord["status"],
+    updatedAt: doc.updatedAt ? String(doc.updatedAt) : undefined,
+    wilaya: String(doc.wilaya)
+  };
+}
+
 export default async function ReservationsPage() {
-  let reservations: Array<Record<string, unknown>> = [];
+  let reservations: ReservationRecord[] = [];
+  let courses: Array<{ id: string; title: string }> = [];
 
   if (await tryConnectToDatabase()) {
-    reservations = await Reservation.find({}).populate("courseId").sort({ createdAt: -1 }).lean();
+    const [reservationDocs, courseDocs] = await Promise.all([
+      Reservation.find({}).populate("courseId").sort({ createdAt: -1 }).lean(),
+      Course.find({}).sort({ title: 1 }).select("_id title").lean()
+    ]);
+
+    reservations = reservationDocs.map((doc) =>
+      serializeReservation(doc as Record<string, unknown>)
+    );
+    courses = courseDocs.map((doc) => ({
+      id: String(doc._id),
+      title: String(doc.title)
+    }));
   }
 
   return (
     <AdminShell>
-      <AdminHeader title="Reservations" />
-      <div className="mt-8 space-y-4">
-        {reservations.length === 0 ? (
-          <Card className="p-6 text-dentova-muted">Aucune reservation recue.</Card>
-        ) : (
-          reservations.map((reservation) => {
-            const course = reservation.courseId as Record<string, unknown> | null;
-
-            return (
-              <Card className="p-5" key={String(reservation._id)}>
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="font-bold text-dentova-navy">{String(reservation.fullName)}</p>
-                    <p className="text-sm text-dentova-muted">
-                      {String(reservation.email)} • {String(reservation.phone)}
-                    </p>
-                    <p className="mt-2 text-sm text-dentova-ink">
-                      Cours: {course?.title ? String(course.title) : "Non renseigne"}
-                    </p>
-                    <p className="text-sm text-dentova-muted">
-                      {String(reservation.profession)} • {String(reservation.wilaya)}
-                    </p>
-                  </div>
-                  <span className="rounded-full bg-dentova-ice px-3 py-1 text-xs font-bold uppercase text-dentova-navy">
-                    {String(reservation.status)}
-                  </span>
-                </div>
-              </Card>
-            );
-          })
-        )}
-      </div>
+      <AdminHeader
+        description="Gestion CRM des reservations de cours avec filtres, statuts et edition detaillee."
+        title="Reservations"
+      />
+      <ReservationsCRM courses={courses} initialReservations={reservations} />
     </AdminShell>
   );
 }

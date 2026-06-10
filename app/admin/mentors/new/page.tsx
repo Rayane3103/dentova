@@ -1,11 +1,12 @@
+import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { MentorForm } from "@/components/admin/MentorForm";
 
 export default function NewMentorPage() {
   return (
     <AdminShell>
-      <h1 className="text-4xl font-extrabold text-dentova-navy">Nouveau mentor</h1>
-      <div className="mt-8">
+      <AdminHeader title="Nouveau mentor" />
+      <div className="mt-5">
         <MentorForm />
       </div>
     </AdminShell>

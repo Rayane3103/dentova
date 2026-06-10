@@ -55,15 +55,15 @@ export function ImageUploadField({
   return (
     <div className={cn("space-y-3", className)}>
       <label
-        className="dentova-focus flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-dentova-graphite/30 bg-white px-5 py-8 text-center transition hover:border-dentova-teal hover:bg-dentova-mint"
+        className="dentova-focus flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-dentova-graphite/20 bg-dentova-ice/40 px-4 py-5 text-center transition hover:border-dentova-teal/50 hover:bg-dentova-ice"
         tabIndex={0}
       >
         {uploading ? (
-          <Loader className="h-9 w-9 animate-spin text-dentova-teal" />
+          <Loader className="h-6 w-6 animate-spin text-dentova-teal" />
         ) : (
-          <UploadCloud className="h-9 w-9 text-dentova-teal" />
+          <UploadCloud className="h-6 w-6 text-dentova-teal" />
         )}
-        <span className="mt-3 font-bold text-dentova-graphite">
+        <span className="mt-2 text-xs font-semibold text-dentova-graphite">
           {uploading ? "Upload en cours..." : "Selectionner une image"}
         </span>
         <input
@@ -83,11 +83,12 @@ export function ImageUploadField({
           })
         }
         placeholder="https://... ou /images/assets/..."
+        size="sm"
         value={value.imageUrl}
       />
 
       {value.imageUrl ? (
-        <div className="relative h-40 overflow-hidden rounded-lg border border-dentova-navy/10">
+        <div className="relative h-32 overflow-hidden rounded-lg border border-dentova-navy/10">
           <Image
             alt="Apercu"
             className="object-cover"

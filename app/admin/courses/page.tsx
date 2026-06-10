@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { AdminTable } from "@/components/admin/AdminTable";
@@ -9,12 +10,16 @@ export default async function AdminCoursesPage() {
 
   return (
     <AdminShell>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <AdminHeader title="Gestion des cours" />
-        <Button asChild href="/admin/courses/new">
-          Nouveau cours
-        </Button>
-      </div>
+      <AdminHeader
+        actions={
+          <Button asChild href="/admin/courses/new" size="sm">
+            <Plus className="h-3.5 w-3.5" />
+            Nouveau cours
+          </Button>
+        }
+        description="Gerez le catalogue public, les dates et la publication des formations."
+        title="Gestion des cours"
+      />
       <AdminTable courses={courses} />
     </AdminShell>
   );

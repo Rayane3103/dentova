@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { MentorForm } from "@/components/admin/MentorForm";
 import { tryConnectToDatabase } from "@/lib/db/connect";
@@ -23,8 +24,8 @@ export default async function EditMentorPage({ params }: EditMentorPageProps) {
 
   return (
     <AdminShell>
-      <h1 className="text-4xl font-extrabold text-dentova-navy">Modifier le mentor</h1>
-      <div className="mt-8">
+      <AdminHeader title="Modifier le mentor" />
+      <div className="mt-5">
         <MentorForm
           initialValues={{
             active: Boolean(mentor.active),

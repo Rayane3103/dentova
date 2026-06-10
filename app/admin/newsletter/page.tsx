@@ -1,5 +1,6 @@
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { adminCardClassName } from "@/components/admin/admin-ui";
 import { Card } from "@/components/ui/Card";
 import { tryConnectToDatabase } from "@/lib/db/connect";
 import { NewsletterSubscriber } from "@/models/NewsletterSubscriber";
@@ -14,14 +15,14 @@ export default async function NewsletterPage() {
   return (
     <AdminShell>
       <AdminHeader title="Newsletter" />
-      <Card className="mt-8 overflow-hidden rounded-xl p-6">
+      <Card className={`${adminCardClassName} mt-5 overflow-hidden p-0`}>
         {subscribers.length === 0 ? (
-          <p className="text-dentova-muted">Aucun abonne pour le moment.</p>
+          <p className="px-4 py-6 text-sm text-dentova-muted">Aucun abonne pour le moment.</p>
         ) : (
-          <div className="space-y-3">
+          <div className="divide-y divide-dentova-navy/8">
             {subscribers.map((subscriber) => (
               <div
-                className="rounded-lg border border-dentova-navy/10 px-4 py-3 text-sm"
+                className="px-4 py-2.5 text-sm text-dentova-navy"
                 key={String(subscriber._id)}
               >
                 {String(subscriber.email)}

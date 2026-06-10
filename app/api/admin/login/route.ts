@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
+import { authenticateAdmin } from "@/lib/auth/admin-user";
 import { setSessionCookie } from "@/lib/auth/cookies";
-import { verifyPassword } from "@/lib/auth/password";
 import { connectToDatabase, hasDatabaseConfig } from "@/lib/db/connect";
 import { adminLoginSchema } from "@/lib/validators/admin";
-import { AdminUser } from "@/models/AdminUser";
 
 export const runtime = "nodejs";
 
@@ -19,7 +18,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          "MongoDB n'est pas configure sur Vercel. Ajoutez MONGODB_URI dans les variables d'environnement."
+          "MongoDB n'est pas configure. Ajoutez MONGODB_URI dans les variables d'environnement."
       },
       { status: 503 }
     );
@@ -29,38 +28,46 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          "ADMIN_JWT_SECRET est manquant. Ajoutez une cle secrete dans les variables d'environnement Vercel."
+          "ADMIN_JWT_SECRET est manquant. Ajoutez une cle secrete dans les variables d'environnement."
       },
       { status: 503 }
     );
   }
 
-  await connectToDatabase();
-  const admin = await AdminUser.findOne({
-    email: parsed.data.email.toLowerCase()
-  });
+  try {
+    await connectToDatabase();
+  } catch {
+    return NextResponse.json(
+      {
+        error:
+          "Impossible de se connecter a MongoDB. Verifiez MONGODB_URI sur Render."
+      },
+      { status: 503 }
+    );
+  }
+
+  const admin = await authenticateAdmin(parsed.data.email, parsed.data.password);
 
   if (!admin) {
     return NextResponse.json(
       {
         error:
-          "Identifiants invalides. Si c'est la premiere connexion, executez npm run seed:admin avec vos variables ADMIN_EMAIL et ADMIN_PASSWORD."
+          "Identifiants invalides. Verifiez ADMIN_EMAIL et ADMIN_PASSWORD dans Render, puis redeployez."
       },
       { status: 401 }
     );
   }
 
-  const valid = await verifyPassword(parsed.data.password, admin.passwordHash);
+  const response = NextResponse.json({ ok: true });
 
-  if (!valid) {
-    return NextResponse.json({ error: "Identifiants invalides." }, { status: 401 });
-  }
+  await setSessionCookie(
+    {
+      adminId: admin._id.toString(),
+      email: admin.email,
+      role: "admin"
+    },
+    response
+  );
 
-  await setSessionCookie({
-    adminId: admin._id.toString(),
-    email: admin.email,
-    role: "admin"
-  });
-
-  return NextResponse.json({ ok: true });
+  return response;
 }

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { FAQForm } from "@/components/admin/FAQForm";
 import { tryConnectToDatabase } from "@/lib/db/connect";
@@ -23,8 +24,8 @@ export default async function EditFaqPage({ params }: EditFaqPageProps) {
 
   return (
     <AdminShell>
-      <h1 className="text-4xl font-extrabold text-dentova-navy">Modifier la FAQ</h1>
-      <div className="mt-8">
+      <AdminHeader title="Modifier la FAQ" />
+      <div className="mt-5">
         <FAQForm
           faqId={id}
           initialValues={{

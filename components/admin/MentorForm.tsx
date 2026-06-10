@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 import { ImageUploadField } from "@/components/admin/ImageUploadField";
+import { adminFormClassName, adminLabelClassName } from "@/components/admin/admin-ui";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Input } from "@/components/ui/Input";
@@ -68,25 +69,25 @@ export function MentorForm({
   };
 
   return (
-    <form className="max-w-xl space-y-5 rounded-xl border border-dentova-navy/10 bg-white p-6 shadow-card" onSubmit={handleSubmit(onSubmit)}>
+    <form className={adminFormClassName} onSubmit={handleSubmit(onSubmit)}>
       <label className="block">
-        <span className="mb-2 block font-bold text-dentova-navy">Nom *</span>
-        <Input {...register("name")} />
+        <span className={adminLabelClassName}>Nom *</span>
+        <Input size="sm" {...register("name")} />
       </label>
       <label className="block">
-        <span className="mb-2 block font-bold text-dentova-navy">Titre *</span>
-        <Input {...register("title")} />
+        <span className={adminLabelClassName}>Titre *</span>
+        <Input size="sm" {...register("title")} />
       </label>
       <label className="block">
-        <span className="mb-2 block font-bold text-dentova-navy">Specialite</span>
-        <Input {...register("specialty")} />
+        <span className={adminLabelClassName}>Specialite</span>
+        <Input size="sm" {...register("specialty")} />
       </label>
       <label className="block">
-        <span className="mb-2 block font-bold text-dentova-navy">Bio</span>
-        <Textarea {...register("bio")} />
+        <span className={adminLabelClassName}>Bio</span>
+        <Textarea size="sm" {...register("bio")} />
       </label>
       <div>
-        <span className="mb-2 block font-bold text-dentova-navy">Photo *</span>
+        <span className={adminLabelClassName}>Photo *</span>
         <ImageUploadField
           onChange={(value) => {
             setValue("imageUrl", value.imageUrl, { shouldValidate: true });
@@ -96,16 +97,16 @@ export function MentorForm({
         />
       </div>
       <label className="block">
-        <span className="mb-2 block font-bold text-dentova-navy">Ordre</span>
-        <Input type="number" {...register("order", { valueAsNumber: true })} />
+        <span className={adminLabelClassName}>Ordre</span>
+        <Input size="sm" type="number" {...register("order", { valueAsNumber: true })} />
       </label>
-      <label className="flex items-center gap-2 font-semibold text-dentova-ink">
+      <label className="flex items-center gap-2 text-sm font-medium text-dentova-ink">
         <Checkbox {...register("active")} /> Actif
       </label>
-      <label className="flex items-center gap-2 font-semibold text-dentova-ink">
+      <label className="flex items-center gap-2 text-sm font-medium text-dentova-ink">
         <Checkbox {...register("showOnHomepage")} /> Afficher sur l&apos;accueil
       </label>
-      <Button className="w-full" disabled={isSubmitting} type="submit">
+      <Button className="w-full" disabled={isSubmitting} size="sm" type="submit">
         {isSubmitting ? <Loader className="h-4 w-4 animate-spin" /> : null}
         {mentorId ? "Mettre a jour" : "Ajouter le mentor"}
       </Button>

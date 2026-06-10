@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 import { ImageUploadField } from "@/components/admin/ImageUploadField";
+import { adminFormClassName, adminLabelClassName } from "@/components/admin/admin-ui";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Input } from "@/components/ui/Input";
@@ -65,18 +66,18 @@ export function WorkshopImageForm({
   };
 
   return (
-    <form className="max-w-xl space-y-5 rounded-xl border border-dentova-navy/10 bg-white p-6 shadow-card" onSubmit={handleSubmit(onSubmit)}>
+    <form className={adminFormClassName} onSubmit={handleSubmit(onSubmit)}>
       <label className="block">
-        <span className="mb-2 block font-bold text-dentova-navy">Titre *</span>
-        <Input {...register("title")} />
-        {errors.title ? <p className="mt-1 text-sm text-dentova-magenta">{errors.title.message}</p> : null}
+        <span className={adminLabelClassName}>Titre *</span>
+        <Input size="sm" {...register("title")} />
+        {errors.title ? <p className="mt-1 text-xs text-dentova-magenta">{errors.title.message}</p> : null}
       </label>
       <label className="block">
-        <span className="mb-2 block font-bold text-dentova-navy">Description</span>
-        <Textarea {...register("description")} />
+        <span className={adminLabelClassName}>Description</span>
+        <Textarea size="sm" {...register("description")} />
       </label>
       <div>
-        <span className="mb-2 block font-bold text-dentova-navy">Image *</span>
+        <span className={adminLabelClassName}>Image *</span>
         <ImageUploadField
           onChange={(value) => {
             setValue("imageUrl", value.imageUrl, { shouldValidate: true });
@@ -86,13 +87,13 @@ export function WorkshopImageForm({
         />
       </div>
       <label className="block">
-        <span className="mb-2 block font-bold text-dentova-navy">Ordre</span>
-        <Input type="number" {...register("order", { valueAsNumber: true })} />
+        <span className={adminLabelClassName}>Ordre</span>
+        <Input size="sm" type="number" {...register("order", { valueAsNumber: true })} />
       </label>
-      <label className="flex items-center gap-2 font-semibold text-dentova-ink">
+      <label className="flex items-center gap-2 text-sm font-medium text-dentova-ink">
         <Checkbox {...register("active")} /> Active
       </label>
-      <Button className="w-full" disabled={isSubmitting} type="submit">
+      <Button className="w-full" disabled={isSubmitting} size="sm" type="submit">
         {isSubmitting ? <Loader className="h-4 w-4 animate-spin" /> : null}
         {imageId ? "Mettre a jour" : "Ajouter l'image"}
       </Button>

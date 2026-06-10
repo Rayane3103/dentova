@@ -13,10 +13,10 @@ export default async function FeedbackPage() {
 
   return (
     <AdminShell>
-      <AdminHeader title="Avis clients" />
-      <p className="mt-2 text-dentova-muted">
-        Approuvez les avis et choisissez ceux a afficher sur la page d&apos;accueil.
-      </p>
+      <AdminHeader
+        description="Approuvez les avis et choisissez ceux a afficher sur la page d'accueil."
+        title="Avis clients"
+      />
       <FeedbackAdminPanel feedback={feedback as never} />
     </AdminShell>
   );

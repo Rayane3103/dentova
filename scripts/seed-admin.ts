@@ -1,34 +1,28 @@
 import { loadEnvConfig } from "@next/env";
-import { hashPassword } from "@/lib/auth/password";
+import { upsertAdminFromEnv } from "@/lib/auth/admin-user";
 import { connectToDatabase } from "@/lib/db/connect";
-import { AdminUser } from "@/models/AdminUser";
 
 loadEnvConfig(process.cwd());
 
 async function main() {
-  const email = process.env.ADMIN_EMAIL;
-  const password = process.env.ADMIN_PASSWORD;
-  const name = process.env.ADMIN_NAME || "Dentova Admin";
+  const missing = [
+    !process.env.MONGODB_URI && "MONGODB_URI",
+    !process.env.ADMIN_EMAIL && "ADMIN_EMAIL",
+    !process.env.ADMIN_PASSWORD && "ADMIN_PASSWORD"
+  ].filter(Boolean);
 
-  if (!email || !password) {
-    throw new Error("Set ADMIN_EMAIL and ADMIN_PASSWORD before running seed:admin.");
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing environment variables: ${missing.join(", ")}.\n` +
+        "Create a .env.local file in the project root (copy .env.local.example) " +
+        "and paste the same values you use on Vercel/Render."
+    );
   }
 
   await connectToDatabase();
-  const passwordHash = await hashPassword(password);
+  const admin = await upsertAdminFromEnv();
 
-  await AdminUser.findOneAndUpdate(
-    { email: email.toLowerCase() },
-    {
-      email: email.toLowerCase(),
-      name,
-      passwordHash,
-      role: "admin"
-    },
-    { new: true, upsert: true }
-  );
-
-  console.log(`Seeded admin account for ${email}.`);
+  console.log(`Seeded admin account for ${admin.email}.`);
 }
 
 main()

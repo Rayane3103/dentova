@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 import { ImageUploadField } from "@/components/admin/ImageUploadField";
+import { adminFormClassName, adminLabelClassName } from "@/components/admin/admin-ui";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Input } from "@/components/ui/Input";
@@ -88,31 +89,31 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
   };
 
   return (
-    <form className="max-w-2xl space-y-5 rounded-xl border border-dentova-navy/10 bg-white p-6 shadow-card" onSubmit={handleSubmit(onSubmit)}>
+    <form className={adminFormClassName} onSubmit={handleSubmit(onSubmit)}>
       <label className="block">
-        <span className="mb-2 block font-bold text-dentova-navy">Titre *</span>
-        <Input placeholder="Titre du cours" {...register("title")} />
+        <span className={adminLabelClassName}>Titre *</span>
+        <Input placeholder="Titre du cours" size="sm" {...register("title")} />
         {errors.title ? <p className="mt-1 text-sm text-dentova-magenta">{errors.title.message}</p> : null}
       </label>
 
       <label className="block">
-        <span className="mb-2 block font-bold text-dentova-navy">Sous-titre</span>
-        <Input placeholder="Sous-titre" {...register("subtitle")} />
+        <span className={adminLabelClassName}>Sous-titre</span>
+        <Input placeholder="Sous-titre" size="sm" {...register("subtitle")} />
       </label>
 
       <label className="block">
-        <span className="mb-2 block font-bold text-dentova-navy">Description *</span>
-        <Textarea className="min-h-40" placeholder="Description complete" {...register("description")} />
+        <span className={adminLabelClassName}>Description *</span>
+        <Textarea className="min-h-32" placeholder="Description complete" size="sm" {...register("description")} />
         {errors.description ? <p className="mt-1 text-sm text-dentova-magenta">{errors.description.message}</p> : null}
       </label>
 
       <label className="block">
-        <span className="mb-2 block font-bold text-dentova-navy">Extrait</span>
-        <Textarea className="min-h-24" placeholder="Resume court pour la carte" {...register("excerpt")} />
+        <span className={adminLabelClassName}>Extrait</span>
+        <Textarea className="min-h-20" placeholder="Resume court pour la carte" size="sm" {...register("excerpt")} />
       </label>
 
       <div>
-        <span className="mb-2 block font-bold text-dentova-navy">Image *</span>
+        <span className={adminLabelClassName}>Image *</span>
         <ImageUploadField
           onChange={(value) => {
             setValue("imageUrl", value.imageUrl, { shouldValidate: true });
@@ -125,8 +126,8 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="mb-2 block font-bold text-dentova-navy">Categorie *</span>
-          <Select {...register("categoryId")}>
+          <span className={adminLabelClassName}>Categorie *</span>
+          <Select size="sm" {...register("categoryId")}>
             <option value="">Selectionner</option>
             {categories.map((category) => (
               <option key={category.id} value={category.id}>
@@ -137,62 +138,62 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
           {errors.categoryId ? <p className="mt-1 text-sm text-dentova-magenta">{errors.categoryId.message}</p> : null}
         </label>
         <label className="block">
-          <span className="mb-2 block font-bold text-dentova-navy">Formateur *</span>
-          <Input placeholder="Nom du formateur" {...register("instructor")} />
+          <span className={adminLabelClassName}>Formateur *</span>
+          <Input placeholder="Nom du formateur" size="sm" {...register("instructor")} />
         </label>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="mb-2 block font-bold text-dentova-navy">Date *</span>
-          <Input type="date" {...register("date", { valueAsDate: true })} />
+          <span className={adminLabelClassName}>Date *</span>
+          <Input size="sm" type="date" {...register("date", { valueAsDate: true })} />
         </label>
         <label className="block">
-          <span className="mb-2 block font-bold text-dentova-navy">Heure</span>
-          <Input type="time" {...register("time")} />
-        </label>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="mb-2 block font-bold text-dentova-navy">Lieu *</span>
-          <Input placeholder="Alger" {...register("location")} />
-        </label>
-        <label className="block">
-          <span className="mb-2 block font-bold text-dentova-navy">Prix (DA) *</span>
-          <Input min="0" type="number" {...register("price", { valueAsNumber: true })} />
+          <span className={adminLabelClassName}>Heure</span>
+          <Input size="sm" type="time" {...register("time")} />
         </label>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="mb-2 block font-bold text-dentova-navy">Telephone *</span>
-          <Input {...register("contactPhone")} />
+          <span className={adminLabelClassName}>Lieu *</span>
+          <Input placeholder="Alger" size="sm" {...register("location")} />
         </label>
         <label className="block">
-          <span className="mb-2 block font-bold text-dentova-navy">Email *</span>
-          <Input type="email" {...register("contactEmail")} />
+          <span className={adminLabelClassName}>Prix (DA) *</span>
+          <Input min="0" size="sm" type="number" {...register("price", { valueAsNumber: true })} />
+        </label>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block">
+          <span className={adminLabelClassName}>Telephone *</span>
+          <Input size="sm" {...register("contactPhone")} />
+        </label>
+        <label className="block">
+          <span className={adminLabelClassName}>Email *</span>
+          <Input size="sm" type="email" {...register("contactEmail")} />
         </label>
       </div>
 
       <label className="block">
-        <span className="mb-2 block font-bold text-dentova-navy">Places max</span>
-        <Input min="1" type="number" {...register("maxSeats", { valueAsNumber: true })} />
+        <span className={adminLabelClassName}>Places max</span>
+        <Input min="1" size="sm" type="number" {...register("maxSeats", { valueAsNumber: true })} />
       </label>
 
-      <div className="space-y-3">
-        <label className="flex items-center gap-2 font-semibold text-dentova-ink">
+      <div className="space-y-2">
+        <label className="flex items-center gap-2 text-sm font-medium text-dentova-ink">
           <Checkbox {...register("featured")} /> Cours en vedette
         </label>
-        <label className="flex items-center gap-2 font-semibold text-dentova-ink">
+        <label className="flex items-center gap-2 text-sm font-medium text-dentova-ink">
           <Checkbox {...register("showOnHomepage")} /> Afficher sur l&apos;accueil
         </label>
-        <label className="flex items-center gap-2 font-semibold text-dentova-ink">
+        <label className="flex items-center gap-2 text-sm font-medium text-dentova-ink">
           <Checkbox {...register("published")} /> Publie
         </label>
       </div>
 
-      <Button className="w-full" disabled={isSubmitting} type="submit">
+      <Button className="w-full" disabled={isSubmitting} size="sm" type="submit">
         {isSubmitting ? <Loader className="h-4 w-4 animate-spin" /> : null}
         {courseId ? "Mettre a jour" : "Creer le cours"}
       </Button>

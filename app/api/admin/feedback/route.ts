@@ -28,15 +28,32 @@ export async function PATCH(request: Request) {
   }
 
   await connectToDatabase();
-  const feedback = await Feedback.findByIdAndUpdate(
-    payload.id,
-    {
-      approved: Boolean(payload.approved),
-      showOnHomepage: Boolean(payload.showOnHomepage),
-      role: payload.role
-    },
-    { new: true }
-  );
+
+  const update: Record<string, unknown> = {};
+
+  if (typeof payload.approved === "boolean") {
+    update.approved = payload.approved;
+    if (payload.approved && typeof payload.showOnHomepage !== "boolean") {
+      update.showOnHomepage = true;
+    }
+    if (!payload.approved) {
+      update.showOnHomepage = false;
+    }
+  }
+
+  if (typeof payload.showOnHomepage === "boolean") {
+    update.showOnHomepage = payload.showOnHomepage;
+  }
+
+  if (typeof payload.role === "string") {
+    update.role = payload.role.trim() || "Participant";
+  }
+
+  if (Object.keys(update).length === 0) {
+    return NextResponse.json({ error: "No valid fields to update." }, { status: 422 });
+  }
+
+  const feedback = await Feedback.findByIdAndUpdate(payload.id, update, { new: true });
 
   revalidatePath("/");
 

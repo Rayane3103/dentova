@@ -21,10 +21,19 @@ export async function POST(request: Request) {
   }
 
   await connectToDatabase();
-  const reservation = await Reservation.create({
-    ...parsed.data,
-    status: "pending"
-  });
 
-  return NextResponse.json({ reservation }, { status: 201 });
+  try {
+    const reservation = await Reservation.create({
+      ...parsed.data,
+      status: "pending"
+    });
+
+    return NextResponse.json({ reservation }, { status: 201 });
+  } catch (error) {
+    console.error("[dentova] Reservation create failed:", error);
+    return NextResponse.json(
+      { error: "Impossible d'enregistrer la reservation pour le moment." },
+      { status: 500 }
+    );
+  }
 }

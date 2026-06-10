@@ -1,16 +1,15 @@
+import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { CourseForm } from "@/components/admin/CourseForm";
 
 export default function NewCoursePage() {
   return (
     <AdminShell>
-      <h1 className="text-4xl font-extrabold text-dentova-navy">
-        Create New Course
-      </h1>
-      <p className="mt-2 text-xl text-dentova-ink/60">
-        Add a new course to your platform
-      </p>
-      <div className="mt-8">
+      <AdminHeader
+        description="Ajoutez une nouvelle formation au catalogue public."
+        title="Nouveau cours"
+      />
+      <div className="mt-5">
         <CourseForm />
       </div>
     </AdminShell>

@@ -1,5 +1,6 @@
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { adminBadgeClassName, adminCardClassName } from "@/components/admin/admin-ui";
 import { Card } from "@/components/ui/Card";
 import { tryConnectToDatabase } from "@/lib/db/connect";
 import { ContactMessage } from "@/models/ContactMessage";
@@ -14,25 +15,25 @@ export default async function MessagesPage() {
   return (
     <AdminShell>
       <AdminHeader title="Messages de contact" />
-      <div className="mt-8 space-y-4">
+      <div className="mt-5 space-y-3">
         {messages.length === 0 ? (
-          <Card className="p-6 text-dentova-muted">Aucun message recu.</Card>
+          <Card className={`${adminCardClassName} p-5 text-sm text-dentova-muted`}>
+            Aucun message recu.
+          </Card>
         ) : (
           messages.map((message) => (
-            <Card className="p-5" key={String(message._id)}>
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="font-bold text-dentova-navy">{String(message.fullName)}</p>
-                  <p className="text-sm text-dentova-muted">
+            <Card className={`${adminCardClassName} p-4`} key={String(message._id)}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <p className="font-semibold text-dentova-navy">{String(message.fullName)}</p>
+                  <p className="text-xs text-dentova-muted">
                     {String(message.email)} {message.phone ? `• ${String(message.phone)}` : ""}
                   </p>
-                  <p className="mt-3 text-sm leading-relaxed text-dentova-ink">
+                  <p className="mt-2 text-sm leading-relaxed text-dentova-ink">
                     {String(message.message)}
                   </p>
                 </div>
-                <span className="rounded-full bg-dentova-ice px-3 py-1 text-xs font-bold uppercase text-dentova-navy">
-                  {String(message.status)}
-                </span>
+                <span className={adminBadgeClassName}>{String(message.status)}</span>
               </div>
             </Card>
           ))

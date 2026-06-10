@@ -17,7 +17,13 @@ import { Container } from "@/components/ui/Container";
 import { navItems, siteConfig } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
-export function Navbar({ admin = false }: { admin?: boolean }) {
+export function Navbar({
+  admin = false,
+  authenticated = false
+}: {
+  admin?: boolean;
+  authenticated?: boolean;
+}) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -115,7 +121,7 @@ export function Navbar({ admin = false }: { admin?: boolean }) {
                 <ArrowRight className="h-3.5 w-3.5" />
               </Button>
 
-              {admin ? (
+              {authenticated ? (
                 <div className="hidden items-center gap-2 lg:flex">
                   <Button asChild href="/admin" size="sm" variant="outline">
                     Tableau de bord
@@ -244,6 +250,42 @@ export function Navbar({ admin = false }: { admin?: boolean }) {
                     <CalendarDays className="h-4 w-4" />
                     Demander une formation
                   </Button>
+
+                  {authenticated ? (
+                    <div className="space-y-2">
+                      <Button
+                        asChild
+                        className="w-full"
+                        href="/admin"
+                        onClick={() => setOpen(false)}
+                        variant="outline"
+                      >
+                        Tableau de bord
+                      </Button>
+                      <form action="/api/admin/logout" method="post">
+                        <button
+                          className={buttonClassName({
+                            className: "w-full",
+                            size: "md",
+                            variant: "ghost"
+                          })}
+                          type="submit"
+                        >
+                          Se deconnecter
+                        </button>
+                      </form>
+                    </div>
+                  ) : (
+                    <Button
+                      asChild
+                      className="w-full"
+                      href="/admin/login"
+                      onClick={() => setOpen(false)}
+                      variant="outline"
+                    >
+                      Connexion
+                    </Button>
+                  )}
                 </div>
               </motion.div>
             </>

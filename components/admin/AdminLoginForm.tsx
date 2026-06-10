@@ -2,10 +2,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LogIn } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
+import { adminLabelClassName } from "@/components/admin/admin-ui";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { adminLoginSchema } from "@/lib/validators/admin";
@@ -13,7 +14,7 @@ import { adminLoginSchema } from "@/lib/validators/admin";
 type AdminLoginValues = z.infer<typeof adminLoginSchema>;
 
 export function AdminLoginForm() {
-  const router = useRouter();
+  const searchParams = useSearchParams();
   const {
     formState: { errors, isSubmitting },
     handleSubmit,
@@ -26,25 +27,35 @@ export function AdminLoginForm() {
     const response = await fetch("/api/admin/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
       body: JSON.stringify(values)
     });
 
     if (!response.ok) {
-      const data = (await response.json().catch(() => null)) as { error?: string } | null;
-      toast.error(data?.error || "Identifiants admin invalides.");
+      const data = (await response.json().catch(() => null)) as
+        | { error?: string; errors?: { fieldErrors?: Record<string, string[]> } }
+        | null;
+
+      const validationError = data?.errors?.fieldErrors
+        ? Object.values(data.errors.fieldErrors).flat()[0]
+        : undefined;
+
+      toast.error(data?.error || validationError || "Identifiants admin invalides.");
       return;
     }
 
     toast.success("Connexion reussie.");
-    router.push("/admin");
-    router.refresh();
+    const nextPath = searchParams.get("next");
+    const destination =
+      nextPath && nextPath.startsWith("/admin") ? nextPath : "/admin";
+    window.location.assign(destination);
   };
 
   return (
-    <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
       <label className="block">
-        <span className="mb-2 block font-bold text-dentova-navy">Email</span>
-        <Input placeholder="admin@dentova.com" type="email" {...register("email")} />
+        <span className={adminLabelClassName}>Email</span>
+        <Input placeholder="admin@dentova.com" size="sm" type="email" {...register("email")} />
         {errors.email ? (
           <span className="mt-1 block text-sm font-semibold text-dentova-magenta">
             {errors.email.message}
@@ -52,17 +63,15 @@ export function AdminLoginForm() {
         ) : null}
       </label>
       <label className="block">
-        <span className="mb-2 block font-bold text-dentova-navy">
-          Mot de passe
-        </span>
-        <Input placeholder="Votre mot de passe" type="password" {...register("password")} />
+        <span className={adminLabelClassName}>Mot de passe</span>
+        <Input placeholder="Votre mot de passe" size="sm" type="password" {...register("password")} />
         {errors.password ? (
           <span className="mt-1 block text-sm font-semibold text-dentova-magenta">
             {errors.password.message}
           </span>
         ) : null}
       </label>
-      <Button className="w-full" disabled={isSubmitting} type="submit">
+      <Button className="w-full" disabled={isSubmitting} size="sm" type="submit">
         <LogIn className="h-5 w-5" />
         Se connecter
       </Button>

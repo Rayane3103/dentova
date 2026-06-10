@@ -1,35 +1,29 @@
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/Button";
+import type { ReactNode } from "react";
 
 export function AdminHeader({
+  actions,
   description,
   title
 }: {
+  actions?: ReactNode;
   description?: string;
   title: string;
 }) {
   return (
-    <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-      <div>
-        <h1 className="text-4xl font-extrabold text-dentova-navy">{title}</h1>
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="min-w-0">
+        <h1 className="text-xl font-bold tracking-tight text-dentova-navy sm:text-2xl">
+          {title}
+        </h1>
         {description ? (
-          <p className="mt-2 text-xl text-dentova-ink/60">{description}</p>
+          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-dentova-muted">
+            {description}
+          </p>
         ) : null}
       </div>
-      <div className="flex flex-wrap gap-3">
-        <Button asChild href="/admin/categories/new" size="sm">
-          <Plus className="h-4 w-4" />
-          Add New Category
-        </Button>
-        <Button asChild href="/admin/courses/new" size="sm">
-          <Plus className="h-4 w-4" />
-          Add New Course
-        </Button>
-        <Button asChild href="/admin/workshop-images/new" size="sm">
-          <Plus className="h-4 w-4" />
-          Add Workshop Images
-        </Button>
-      </div>
+      {actions ? (
+        <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
+      ) : null}
     </div>
   );
 }

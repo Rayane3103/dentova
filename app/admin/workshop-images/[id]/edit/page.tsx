@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { WorkshopImageForm } from "@/components/admin/WorkshopImageForm";
 import { tryConnectToDatabase } from "@/lib/db/connect";
@@ -23,8 +24,8 @@ export default async function EditWorkshopImagePage({ params }: EditWorkshopImag
 
   return (
     <AdminShell>
-      <h1 className="text-4xl font-extrabold text-dentova-navy">Modifier l&apos;image</h1>
-      <div className="mt-8">
+      <AdminHeader title={"Modifier l'image"} />
+      <div className="mt-5">
         <WorkshopImageForm
           imageId={id}
           initialValues={{

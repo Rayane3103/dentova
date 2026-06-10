@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { AdminHeader } from "@/components/admin/AdminHeader";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { CourseForm } from "@/components/admin/CourseForm";
 import { getCourseAdminRecord } from "@/lib/data/queries";
@@ -17,8 +18,8 @@ export default async function EditCoursePage({ params }: EditCoursePageProps) {
 
   return (
     <AdminShell>
-      <h1 className="text-4xl font-extrabold text-dentova-navy">Modifier le cours</h1>
-      <div className="mt-8">
+      <AdminHeader title="Modifier le cours" />
+      <div className="mt-5">
         <CourseForm
           courseId={id}
           initialValues={{
