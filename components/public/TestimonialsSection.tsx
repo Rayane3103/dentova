@@ -1,7 +1,8 @@
-import { Star } from "lucide-react";
+import { FeedbackForm } from "@/components/forms/FeedbackForm";
 import { SectionHeader } from "@/components/public/SectionHeader";
 import { Container } from "@/components/ui/Container";
 import { testimonials } from "@/lib/constants";
+import { Star } from "lucide-react";
 
 export function TestimonialsSection() {
   return (
@@ -40,6 +41,16 @@ export function TestimonialsSection() {
               </p>
             </article>
           ))}
+        </div>
+
+        <div
+          className="mx-auto mt-16 max-w-2xl border-t border-dentova-navy-100 pt-12"
+          id="feedback"
+        >
+          <h3 className="mb-6 text-center text-lg font-semibold text-dentova-navy-900">
+            Vous aussi, partagez votre experience
+          </h3>
+          <FeedbackForm />
         </div>
       </Container>
     </section>
