@@ -17,10 +17,10 @@ export default function HomePage() {
       <AboutSection />
       <CoursesSection />
       <TestimonialsSection />
-      <FeedbackSection />
       <FAQSection />
       <ImageGallery />
       <PartnersSection />
+      <FeedbackSection />
       <ContactSection />
     </main>
   );
