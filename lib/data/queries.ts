@@ -4,6 +4,7 @@ import {
   serializeCourse,
   serializeFAQ,
   serializeMentor,
+  serializePost,
   serializeTestimonial,
   serializeWorkshopImage
 } from "@/lib/data/serialize";
@@ -12,8 +13,9 @@ import { Course } from "@/models/Course";
 import { FAQ } from "@/models/FAQ";
 import { Feedback } from "@/models/Feedback";
 import { Mentor } from "@/models/Mentor";
+import { Post } from "@/models/Post";
 import { WorkshopImage } from "@/models/WorkshopImage";
-import type { Category as CategoryType, Course as CourseType } from "@/types";
+import type { BlogPost, Category as CategoryType, Course as CourseType } from "@/types";
 
 async function ensureDb() {
   return tryConnectToDatabase();
@@ -178,6 +180,71 @@ export async function getPublishedTestimonials() {
   return feedback.map((doc) => serializeTestimonial(doc as Record<string, unknown>));
 }
 
+export async function getPublishedPosts(options?: {
+  limit?: number;
+}) {
+  if (!(await ensureDb())) {
+    return [] as BlogPost[];
+  }
+
+  let query = Post.find({ published: true }).sort({ createdAt: -1 });
+
+  if (options?.limit) {
+    query = query.limit(options.limit);
+  }
+
+  const posts = await query.lean();
+
+  return posts.map((doc) => serializePost(doc as Record<string, unknown>));
+}
+
+export async function getAllPosts() {
+  if (!(await ensureDb())) {
+    return [] as BlogPost[];
+  }
+
+  const posts = await Post.find({}).sort({ createdAt: -1 }).lean();
+
+  return posts.map((doc) => serializePost(doc as Record<string, unknown>));
+}
+
+export async function getPostBySlug(slug: string) {
+  if (!(await ensureDb())) {
+    return null;
+  }
+
+  const post = await Post.findOne({ slug, published: true }).lean();
+
+  if (!post) {
+    return null;
+  }
+
+  return serializePost(post as Record<string, unknown>);
+}
+
+export async function getPostById(id: string) {
+  if (!(await ensureDb())) {
+    return null;
+  }
+
+  const post = await Post.findById(id).lean();
+
+  if (!post) {
+    return null;
+  }
+
+  return serializePost(post as Record<string, unknown>);
+}
+
+export async function getPostAdminRecord(id: string) {
+  if (!(await ensureDb())) {
+    return null;
+  }
+
+  const post = await Post.findById(id).lean();
+  return post as Record<string, unknown> | null;
+}
+
 export async function getAdminStats() {
   if (!(await ensureDb())) {
     return null;
@@ -189,6 +256,7 @@ export async function getAdminStats() {
     gallery,
     faqs,
     mentors,
+    posts,
     pendingFeedback,
     newMessages,
     subscribers,
@@ -200,6 +268,7 @@ export async function getAdminStats() {
     WorkshopImage.countDocuments({}),
     FAQ.countDocuments({}),
     Mentor.countDocuments({}),
+    Post.countDocuments({}),
     Feedback.countDocuments({ approved: false }),
     import("@/models/ContactMessage").then(({ ContactMessage }) =>
       ContactMessage.countDocuments({ status: "new" })
@@ -221,6 +290,7 @@ export async function getAdminStats() {
     gallery,
     faqs,
     mentors,
+    posts,
     pendingFeedback,
     newMessages,
     subscribers,

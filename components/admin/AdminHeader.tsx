@@ -10,13 +10,13 @@ export function AdminHeader({
   title: string;
 }) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
-        <h1 className="text-xl font-bold tracking-tight text-dentova-navy sm:text-2xl">
+        <h1 className="text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
           {title}
         </h1>
         {description ? (
-          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-dentova-muted">
+          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-500">
             {description}
           </p>
         ) : null}

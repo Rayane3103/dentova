@@ -70,7 +70,7 @@ export function WorkshopImageForm({
       <label className="block">
         <span className={adminLabelClassName}>Titre *</span>
         <Input size="sm" {...register("title")} />
-        {errors.title ? <p className="mt-1 text-xs text-dentova-magenta">{errors.title.message}</p> : null}
+        {errors.title ? <p className="mt-1 text-xs text-red-600">{errors.title.message}</p> : null}
       </label>
       <label className="block">
         <span className={adminLabelClassName}>Description</span>
@@ -90,7 +90,7 @@ export function WorkshopImageForm({
         <span className={adminLabelClassName}>Ordre</span>
         <Input size="sm" type="number" {...register("order", { valueAsNumber: true })} />
       </label>
-      <label className="flex items-center gap-2 text-sm font-medium text-dentova-ink">
+      <label className="flex items-center gap-2.5 text-sm font-medium text-slate-700">
         <Checkbox {...register("active")} /> Active
       </label>
       <Button className="w-full" disabled={isSubmitting} size="sm" type="submit">

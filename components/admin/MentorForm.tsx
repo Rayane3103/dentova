@@ -100,10 +100,10 @@ export function MentorForm({
         <span className={adminLabelClassName}>Ordre</span>
         <Input size="sm" type="number" {...register("order", { valueAsNumber: true })} />
       </label>
-      <label className="flex items-center gap-2 text-sm font-medium text-dentova-ink">
+      <label className="flex items-center gap-2.5 text-sm font-medium text-slate-700">
         <Checkbox {...register("active")} /> Actif
       </label>
-      <label className="flex items-center gap-2 text-sm font-medium text-dentova-ink">
+      <label className="flex items-center gap-2.5 text-sm font-medium text-slate-700">
         <Checkbox {...register("showOnHomepage")} /> Afficher sur l&apos;accueil
       </label>
       <Button className="w-full" disabled={isSubmitting} size="sm" type="submit">

@@ -60,7 +60,7 @@ export function CategoryForm({
       <label className="block">
         <span className={adminLabelClassName}>Nom *</span>
         <Input size="sm" {...register("name")} />
-        {errors.name ? <p className="mt-1 text-xs text-dentova-magenta">{errors.name.message}</p> : null}
+        {errors.name ? <p className="mt-1 text-xs text-red-600">{errors.name.message}</p> : null}
       </label>
       <label className="block">
         <span className={adminLabelClassName}>Description</span>

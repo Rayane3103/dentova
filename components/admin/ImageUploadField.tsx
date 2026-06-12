@@ -23,25 +23,16 @@ export function ImageUploadField({
   const [uploading, setUploading] = useState(false);
 
   const handleFile = async (file: File | undefined) => {
-    if (!file) {
-      return;
-    }
-
+    if (!file) return;
     setUploading(true);
-
     try {
       const formData = new FormData();
       formData.append("file", file);
-
       const response = await fetch("/api/admin/upload", {
         method: "POST",
         body: formData
       });
-
-      if (!response.ok) {
-        throw new Error("Upload failed");
-      }
-
+      if (!response.ok) throw new Error("Upload failed");
       const data = await response.json();
       onChange({
         imagePublicId: data.imagePublicId,
@@ -55,16 +46,19 @@ export function ImageUploadField({
   return (
     <div className={cn("space-y-3", className)}>
       <label
-        className="dentova-focus flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-dentova-graphite/20 bg-dentova-ice/40 px-4 py-5 text-center transition hover:border-dentova-teal/50 hover:bg-dentova-ice"
+        className="dentova-focus flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50/50 px-4 py-5 text-center transition hover:border-dentova-navy/30 hover:bg-slate-50"
         tabIndex={0}
       >
         {uploading ? (
-          <Loader className="h-6 w-6 animate-spin text-dentova-teal" />
+          <Loader className="h-6 w-6 animate-spin text-dentova-navy" />
         ) : (
-          <UploadCloud className="h-6 w-6 text-dentova-teal" />
+          <UploadCloud className="h-6 w-6 text-slate-400" />
         )}
-        <span className="mt-2 text-xs font-semibold text-dentova-graphite">
-          {uploading ? "Upload en cours..." : "Selectionner une image"}
+        <span className="mt-2 text-xs font-semibold text-slate-500">
+          {uploading ? "Upload en cours..." : "Sélectionner une image"}
+        </span>
+        <span className="mt-0.5 text-[10px] text-slate-400">
+          ou collez l&apos;URL ci-dessous
         </span>
         <input
           accept="image/*"
@@ -87,17 +81,17 @@ export function ImageUploadField({
         value={value.imageUrl}
       />
 
-      {value.imageUrl ? (
-        <div className="relative h-32 overflow-hidden rounded-lg border border-dentova-navy/10">
+      {value.imageUrl && (
+        <div className="relative h-40 overflow-hidden rounded-lg border border-slate-200 bg-slate-100">
           <Image
-            alt="Apercu"
+            alt="Aperçu"
             className="object-cover"
             fill
             sizes="320px"
             src={value.imageUrl}
           />
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

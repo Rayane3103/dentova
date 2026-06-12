@@ -93,7 +93,7 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
       <label className="block">
         <span className={adminLabelClassName}>Titre *</span>
         <Input placeholder="Titre du cours" size="sm" {...register("title")} />
-        {errors.title ? <p className="mt-1 text-sm text-dentova-magenta">{errors.title.message}</p> : null}
+        {errors.title ? <p className="mt-1 text-xs font-medium text-red-600">{errors.title.message}</p> : null}
       </label>
 
       <label className="block">
@@ -104,7 +104,7 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
       <label className="block">
         <span className={adminLabelClassName}>Description *</span>
         <Textarea className="min-h-32" placeholder="Description complete" size="sm" {...register("description")} />
-        {errors.description ? <p className="mt-1 text-sm text-dentova-magenta">{errors.description.message}</p> : null}
+        {errors.description ? <p className="mt-1 text-sm text-red-600">{errors.description.message}</p> : null}
       </label>
 
       <label className="block">
@@ -121,7 +121,7 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
           }}
           value={{ imagePublicId, imageUrl }}
         />
-        {errors.imageUrl ? <p className="mt-1 text-sm text-dentova-magenta">{errors.imageUrl.message}</p> : null}
+        {errors.imageUrl ? <p className="mt-1 text-sm text-red-600">{errors.imageUrl.message}</p> : null}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -135,7 +135,7 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
               </option>
             ))}
           </Select>
-          {errors.categoryId ? <p className="mt-1 text-sm text-dentova-magenta">{errors.categoryId.message}</p> : null}
+          {errors.categoryId ? <p className="mt-1 text-sm text-red-600">{errors.categoryId.message}</p> : null}
         </label>
         <label className="block">
           <span className={adminLabelClassName}>Formateur *</span>
@@ -181,16 +181,21 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
         <Input min="1" size="sm" type="number" {...register("maxSeats", { valueAsNumber: true })} />
       </label>
 
-      <div className="space-y-2">
-        <label className="flex items-center gap-2 text-sm font-medium text-dentova-ink">
-          <Checkbox {...register("featured")} /> Cours en vedette
-        </label>
-        <label className="flex items-center gap-2 text-sm font-medium text-dentova-ink">
-          <Checkbox {...register("showOnHomepage")} /> Afficher sur l&apos;accueil
-        </label>
-        <label className="flex items-center gap-2 text-sm font-medium text-dentova-ink">
-          <Checkbox {...register("published")} /> Publie
-        </label>
+      <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-4">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.06em] text-slate-500">
+          Visibilité
+        </p>
+        <div className="space-y-3">
+          <label className="flex items-center gap-2.5 text-sm font-medium text-slate-700">
+            <Checkbox {...register("featured")} /> Cours en vedette
+          </label>
+          <label className="flex items-center gap-2.5 text-sm font-medium text-slate-700">
+            <Checkbox {...register("showOnHomepage")} /> Afficher sur l&apos;accueil
+          </label>
+          <label className="flex items-center gap-2.5 text-sm font-medium text-slate-700">
+            <Checkbox {...register("published")} /> Publié
+          </label>
+        </div>
       </div>
 
       <Button className="w-full" disabled={isSubmitting} size="sm" type="submit">

@@ -15,6 +15,7 @@ function serializeReservation(doc: Record<string, unknown>): ReservationRecord {
     id: String(doc._id),
     courseId: course?._id ? String(course._id) : String(doc.courseId),
     courseTitle: course?.title ? String(course.title) : "Formation non renseignee",
+    coursePrice: course?.price != null ? Number(course.price) : undefined,
     createdAt: String(doc.createdAt),
     email: String(doc.email),
     fullName: String(doc.fullName),
@@ -29,12 +30,12 @@ function serializeReservation(doc: Record<string, unknown>): ReservationRecord {
 
 export default async function ReservationsPage() {
   let reservations: ReservationRecord[] = [];
-  let courses: Array<{ id: string; title: string }> = [];
+  let courses: Array<{ id: string; title: string; price: number }> = [];
 
   if (await tryConnectToDatabase()) {
     const [reservationDocs, courseDocs] = await Promise.all([
       Reservation.find({}).populate("courseId").sort({ createdAt: -1 }).lean(),
-      Course.find({}).sort({ title: 1 }).select("_id title").lean()
+      Course.find({}).sort({ title: 1 }).select("_id title price").lean()
     ]);
 
     reservations = reservationDocs.map((doc) =>
@@ -42,7 +43,8 @@ export default async function ReservationsPage() {
     );
     courses = courseDocs.map((doc) => ({
       id: String(doc._id),
-      title: String(doc.title)
+      title: String(doc.title),
+      price: Number(doc.price)
     }));
   }
 

@@ -1,5 +1,5 @@
-import { Navbar } from "@/components/layout/Navbar";
 import { getAdminSession } from "@/lib/auth/cookies";
+import { AdminShell } from "@/components/admin/AdminShell";
 
 export const dynamic = "force-dynamic";
 
@@ -10,10 +10,5 @@ export default async function AdminLayout({
 }>) {
   const session = await getAdminSession();
 
-  return (
-    <>
-      <Navbar admin authenticated={Boolean(session)} />
-      {children}
-    </>
-  );
+  return <AdminShell authenticated={Boolean(session)}>{children}</AdminShell>;
 }

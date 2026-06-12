@@ -1,10 +1,9 @@
-import { Plus } from "lucide-react";
+import { HelpCircle, Pencil, Plus } from "lucide-react";
+import Link from "next/link";
 import { AdminDeleteButton } from "@/components/admin/AdminDeleteButton";
 import { AdminHeader } from "@/components/admin/AdminHeader";
-import { AdminShell } from "@/components/admin/AdminShell";
-import { adminBadgeClassName, adminCardClassName } from "@/components/admin/admin-ui";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { StatusBadge } from "@/components/admin/StatusBadge";
 import { tryConnectToDatabase } from "@/lib/db/connect";
 import { serializeFAQ } from "@/lib/data/serialize";
 import { FAQ } from "@/models/FAQ";
@@ -18,7 +17,7 @@ export default async function AdminFaqsPage() {
   }
 
   return (
-    <AdminShell>
+    <>
       <AdminHeader
         actions={
           <Button asChild href="/admin/faqs/new" size="sm">
@@ -26,37 +25,55 @@ export default async function AdminFaqsPage() {
             Nouvelle question
           </Button>
         }
+        description="Gérez la foire aux questions du site"
         title="FAQ"
       />
-      <div className="mt-5 space-y-3">
+      <div className="space-y-3">
         {faqs.length === 0 ? (
-          <Card className={`${adminCardClassName} p-5 text-sm text-dentova-muted`}>
-            Aucune FAQ creee.
-          </Card>
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-6 py-20 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
+              <HelpCircle className="h-7 w-7 text-slate-400" />
+            </div>
+            <h3 className="mt-5 text-base font-bold text-slate-800">
+              Aucune FAQ
+            </h3>
+            <p className="mt-1.5 text-sm text-slate-500">
+              Ajoutez des questions fréquentes pour aider vos visiteurs.
+            </p>
+          </div>
         ) : (
           faqs.map((faq) => (
-            <Card className={`${adminCardClassName} p-4`} key={faq.id}>
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                <div className="min-w-0">
+            <div
+              className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md"
+              key={faq.id}
+            >
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0 flex-1">
                   <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <p className="font-semibold text-dentova-navy">{faq.question}</p>
-                    {!faq.published ? (
-                      <span className={adminBadgeClassName}>Brouillon</span>
-                    ) : null}
+                    <h3 className="text-sm font-bold text-slate-800">
+                      {faq.question}
+                    </h3>
+                    {!faq.published && <StatusBadge variant="draft" />}
                   </div>
-                  <p className="text-sm leading-relaxed text-dentova-muted">{faq.answer}</p>
+                  <p className="text-sm leading-relaxed text-slate-500">
+                    {faq.answer}
+                  </p>
                 </div>
                 <div className="flex shrink-0 gap-2">
-                  <Button asChild href={`/admin/faqs/${faq.id}/edit`} size="sm" variant="outline">
+                  <Link
+                    className="dentova-focus inline-flex h-9 items-center rounded-lg border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                    href={`/admin/faqs/${faq.id}/edit`}
+                  >
+                    <Pencil className="mr-1.5 h-3.5 w-3.5" />
                     Modifier
-                  </Button>
+                  </Link>
                   <AdminDeleteButton endpoint={`/api/admin/faqs/${faq.id}`} />
                 </div>
               </div>
-            </Card>
+            </div>
           ))
         )}
       </div>
-    </AdminShell>
+    </>
   );
 }

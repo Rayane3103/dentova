@@ -68,3 +68,16 @@ export type FAQItem = {
   answer: string;
   category?: string;
 };
+
+export type BlogPost = {
+  id: string;
+  caption: string;
+  content: string;
+  imageUrl: string;
+  imagePublicId?: string;
+  slug: string;
+  published: boolean;
+  likes: string[];
+  createdAt: string;
+  updatedAt: string;
+};

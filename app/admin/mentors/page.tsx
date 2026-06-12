@@ -1,11 +1,10 @@
-import { Plus } from "lucide-react";
+import { Pencil, Plus, User } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { AdminDeleteButton } from "@/components/admin/AdminDeleteButton";
 import { AdminHeader } from "@/components/admin/AdminHeader";
-import { AdminShell } from "@/components/admin/AdminShell";
-import { adminCardClassName } from "@/components/admin/admin-ui";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
+import { StatusBadge } from "@/components/admin/StatusBadge";
 import { tryConnectToDatabase } from "@/lib/db/connect";
 import { serializeMentor } from "@/lib/data/serialize";
 import { Mentor } from "@/models/Mentor";
@@ -19,46 +18,78 @@ export default async function AdminMentorsPage() {
   }
 
   return (
-    <AdminShell>
+    <>
       <AdminHeader
         actions={
           <Button asChild href="/admin/mentors/new" size="sm">
             <Plus className="h-3.5 w-3.5" />
-            Nouveau mentor
+            Nouveau formateur
           </Button>
         }
-        title="Mentors"
+        description="Gérez l'équipe de formateurs affichée sur le site"
+        title="Formateurs"
       />
-      <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {mentors.length === 0 ? (
-          <Card className={`${adminCardClassName} col-span-full p-5 text-sm text-dentova-muted`}>
-            Aucun mentor ajoute.
-          </Card>
+          <div className="col-span-full flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-6 py-20 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
+              <User className="h-7 w-7 text-slate-400" />
+            </div>
+            <h3 className="mt-5 text-base font-bold text-slate-800">
+              Aucun formateur
+            </h3>
+            <p className="mt-1.5 text-sm text-slate-500">
+              Ajoutez les formateurs qui animeront vos ateliers.
+            </p>
+          </div>
         ) : (
           mentors.map((mentor) => (
-            <Card className={`${adminCardClassName} overflow-hidden`} key={mentor.id}>
-              <div className="relative aspect-[4/3] bg-dentova-ice">
-                <Image alt={mentor.name} className="object-cover" fill src={mentor.imageUrl} />
+            <div
+              className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
+              key={mentor.id}
+            >
+              <div className="relative aspect-[4/3] bg-slate-100">
+                <Image
+                  alt={mentor.name}
+                  className="object-cover"
+                  fill
+                  sizes="(min-width: 1280px) 33vw, 50vw"
+                  src={mentor.imageUrl}
+                />
+                {!mentor.active && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-sm">
+                    <StatusBadge variant="inactive" label="Inactif" />
+                  </div>
+                )}
               </div>
-              <div className="space-y-2.5 p-4">
-                <h2 className="text-sm font-bold text-dentova-navy">{mentor.name}</h2>
-                <p className="text-xs text-dentova-muted">{mentor.title}</p>
-                <div className="flex gap-2 pt-1">
-                  <Button
-                    asChild
+              <div className="p-4">
+                <h3 className="text-sm font-bold text-slate-800">
+                  {mentor.name}
+                </h3>
+                <p className="mt-0.5 text-xs text-slate-500">{mentor.title}</p>
+                {mentor.specialty && (
+                  <p className="mt-1.5 text-xs text-slate-400">
+                    {mentor.specialty}
+                  </p>
+                )}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Link
+                    className="dentova-focus inline-flex h-8 items-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
                     href={`/admin/mentors/${mentor.id}/edit`}
-                    size="sm"
-                    variant="outline"
                   >
+                    <Pencil className="mr-1 h-3 w-3" />
                     Modifier
-                  </Button>
-                  <AdminDeleteButton endpoint={`/api/admin/mentors/${mentor.id}`} />
+                  </Link>
+                  <AdminDeleteButton
+                    compact
+                    endpoint={`/api/admin/mentors/${mentor.id}`}
+                  />
                 </div>
               </div>
-            </Card>
+            </div>
           ))
         )}
       </div>
-    </AdminShell>
+    </>
   );
 }

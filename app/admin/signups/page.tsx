@@ -1,7 +1,6 @@
+import { Mail, Phone, User } from "lucide-react";
 import { AdminHeader } from "@/components/admin/AdminHeader";
-import { AdminShell } from "@/components/admin/AdminShell";
-import { adminBadgeClassName, adminCardClassName } from "@/components/admin/admin-ui";
-import { Card } from "@/components/ui/Card";
+import { StatusBadge } from "@/components/admin/StatusBadge";
 import { tryConnectToDatabase } from "@/lib/db/connect";
 import { ClientSignup } from "@/models/ClientSignup";
 import { Reservation } from "@/models/Reservation";
@@ -45,7 +44,6 @@ export default async function SignupsPage() {
       })),
       ...reservations.map((reservation) => {
         const course = reservation.courseId as Record<string, unknown> | null;
-
         return {
           id: String(reservation._id),
           kind: "course" as const,
@@ -54,7 +52,7 @@ export default async function SignupsPage() {
           phone: String(reservation.phone),
           profession: reservation.profession ? String(reservation.profession) : undefined,
           wilaya: reservation.wilaya ? String(reservation.wilaya) : undefined,
-          courseLabel: course?.title ? String(course.title) : "Formation non renseignee",
+          courseLabel: course?.title ? String(course.title) : "Formation non renseignée",
           message: reservation.message ? String(reservation.message) : undefined,
           status: String(reservation.status),
           createdAt: reservation.createdAt as Date | undefined
@@ -67,48 +65,87 @@ export default async function SignupsPage() {
   }
 
   return (
-    <AdminShell>
+    <>
       <AdminHeader
-        description="Demandes generales et reservations de cours soumises depuis le site public."
-        title="Inscriptions clients"
+        description="Demandes générales et réservations de cours reçues depuis le site"
+        title="Inscriptions"
       />
-      <div className="mt-5 space-y-3">
+      <div className="space-y-3">
         {entries.length === 0 ? (
-          <Card className={`${adminCardClassName} p-5 text-sm text-dentova-muted`}>
-            Aucune inscription recue.
-          </Card>
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-6 py-20 text-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
+              <User className="h-7 w-7 text-slate-400" />
+            </div>
+            <h3 className="mt-5 text-base font-bold text-slate-800">
+              Aucune inscription
+            </h3>
+            <p className="mt-1.5 text-sm text-slate-500">
+              Les inscriptions apparaîtront ici.
+            </p>
+          </div>
         ) : (
           entries.map((entry) => (
-            <Card className={`${adminCardClassName} p-4`} key={`${entry.kind}-${entry.id}`}>
+            <div
+              className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md"
+              key={`${entry.kind}-${entry.id}`}
+            >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0">
-                  <div className="mb-2">
-                    <span className={adminBadgeClassName}>
-                      {entry.kind === "course" ? "Reservation cours" : "Inscription generale"}
+                <div className="min-w-0 flex-1">
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <StatusBadge
+                      variant={entry.kind === "course" ? "confirmed" : "new"}
+                      label={
+                        entry.kind === "course"
+                          ? "Réservation"
+                          : "Inscription"
+                      }
+                    />
+                    <span className="text-sm font-bold text-slate-800">
+                      {entry.fullName}
                     </span>
                   </div>
-                  <p className="font-semibold text-dentova-navy">{entry.fullName}</p>
-                  <p className="text-xs text-dentova-muted">
-                    {entry.email} • {entry.phone}
-                  </p>
-                  {entry.profession || entry.wilaya ? (
-                    <p className="mt-1.5 text-sm text-dentova-ink">
+                  <div className="mb-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                    <span className="inline-flex items-center gap-1">
+                      <Mail className="h-3 w-3" />
+                      {entry.email}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Phone className="h-3 w-3" />
+                      {entry.phone}
+                    </span>
+                  </div>
+                  {(entry.profession || entry.wilaya) && (
+                    <p className="text-xs text-slate-500">
                       {[entry.profession, entry.wilaya].filter(Boolean).join(" • ")}
                     </p>
-                  ) : null}
-                  {entry.courseLabel ? (
-                    <p className="text-sm text-dentova-muted">Formation: {entry.courseLabel}</p>
-                  ) : null}
-                  {entry.message ? (
-                    <p className="mt-2 text-sm leading-relaxed text-dentova-ink">{entry.message}</p>
-                  ) : null}
+                  )}
+                  {entry.courseLabel && (
+                    <p className="mt-1 text-xs font-medium text-dentova-navy">
+                      {entry.courseLabel}
+                    </p>
+                  )}
+                  {entry.message && (
+                    <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                      {entry.message}
+                    </p>
+                  )}
                 </div>
-                <span className={adminBadgeClassName}>{entry.status}</span>
+                <div className="flex shrink-0 items-center gap-2">
+                  <StatusBadge variant={entry.status === "new" ? "new" : "read"} />
+                  {entry.createdAt && (
+                    <span className="text-xs text-slate-400">
+                      {new Date(entry.createdAt).toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "short"
+                      })}
+                    </span>
+                  )}
+                </div>
               </div>
-            </Card>
+            </div>
           ))
         )}
       </div>
-    </AdminShell>
+    </>
   );
 }

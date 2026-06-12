@@ -1,5 +1,4 @@
 import { AdminHeader } from "@/components/admin/AdminHeader";
-import { AdminShell } from "@/components/admin/AdminShell";
 import { FeedbackAdminPanel } from "@/components/admin/FeedbackAdminPanel";
 import { tryConnectToDatabase } from "@/lib/db/connect";
 import { Feedback } from "@/models/Feedback";
@@ -12,12 +11,12 @@ export default async function FeedbackPage() {
   }
 
   return (
-    <AdminShell>
+    <>
       <AdminHeader
-        description="Approuvez les avis et choisissez ceux a afficher sur la page d'accueil."
+        description="Approuvez, modifiez et gérez les avis clients"
         title="Avis clients"
       />
       <FeedbackAdminPanel feedback={feedback as never} />
-    </AdminShell>
+    </>
   );
 }

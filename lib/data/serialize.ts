@@ -1,4 +1,4 @@
-import type { Category, Course, FAQItem, Mentor, Testimonial, WorkshopImage } from "@/types";
+import type { BlogPost, Category, Course, FAQItem, Mentor, Testimonial, WorkshopImage } from "@/types";
 
 type MongoDoc = Record<string, unknown>;
 
@@ -92,5 +92,36 @@ export function serializeTestimonial(doc: MongoDoc): Testimonial {
     role: doc.role ? String(doc.role) : "Participant",
     message: String(doc.message),
     rating: Number(doc.rating ?? 5)
+  };
+}
+
+function formatDateTime(value: unknown) {
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  return new Date().toISOString();
+}
+
+export function serializePost(doc: MongoDoc): BlogPost {
+  const likes = Array.isArray(doc.likes)
+    ? doc.likes.map((id: unknown) => String(id))
+    : [];
+
+  return {
+    id: String(doc._id),
+    caption: String(doc.caption),
+    content: String(doc.content),
+    imageUrl: String(doc.imageUrl),
+    imagePublicId: doc.imagePublicId ? String(doc.imagePublicId) : undefined,
+    slug: String(doc.slug),
+    published: Boolean(doc.published ?? true),
+    likes,
+    createdAt: formatDateTime(doc.createdAt),
+    updatedAt: formatDateTime(doc.updatedAt)
   };
 }

@@ -64,7 +64,7 @@ export function FAQForm({
       <label className="block">
         <span className={adminLabelClassName}>Question *</span>
         <Input size="sm" {...register("question")} />
-        {errors.question ? <p className="mt-1 text-xs text-dentova-magenta">{errors.question.message}</p> : null}
+        {errors.question ? <p className="mt-1 text-xs text-red-600">{errors.question.message}</p> : null}
       </label>
       <label className="block">
         <span className={adminLabelClassName}>Reponse *</span>
@@ -85,8 +85,8 @@ export function FAQForm({
           <Input size="sm" type="number" {...register("sortOrder", { valueAsNumber: true })} />
         </label>
       </div>
-      <label className="flex items-center gap-2 text-sm font-medium text-dentova-ink">
-        <Checkbox {...register("published")} /> Publiee
+      <label className="flex items-center gap-2.5 text-sm font-medium text-slate-700">
+        <Checkbox {...register("published")} /> Publiée
       </label>
       <Button className="w-full" disabled={isSubmitting} size="sm" type="submit">
         {isSubmitting ? <Loader className="h-4 w-4 animate-spin" /> : null}

@@ -11,6 +11,7 @@ const config: Config = {
       colors: {
         dentova: {
           navy: {
+            DEFAULT: "#14123a",
             50: "#f4f3fa",
             100: "#e8e6f4",
             200: "#d1cde8",

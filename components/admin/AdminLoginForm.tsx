@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LogIn } from "lucide-react";
+import { Loader, LogIn } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -35,16 +35,14 @@ export function AdminLoginForm() {
       const data = (await response.json().catch(() => null)) as
         | { error?: string; errors?: { fieldErrors?: Record<string, string[]> } }
         | null;
-
       const validationError = data?.errors?.fieldErrors
         ? Object.values(data.errors.fieldErrors).flat()[0]
         : undefined;
-
       toast.error(data?.error || validationError || "Identifiants admin invalides.");
       return;
     }
 
-    toast.success("Connexion reussie.");
+    toast.success("Connexion réussie.");
     const nextPath = searchParams.get("next");
     const destination =
       nextPath && nextPath.startsWith("/admin") ? nextPath : "/admin";
@@ -52,27 +50,47 @@ export function AdminLoginForm() {
   };
 
   return (
-    <form className="space-y-3" onSubmit={handleSubmit(onSubmit)}>
+    <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
       <label className="block">
         <span className={adminLabelClassName}>Email</span>
-        <Input placeholder="admin@dentova.com" size="sm" type="email" {...register("email")} />
-        {errors.email ? (
-          <span className="mt-1 block text-sm font-semibold text-dentova-magenta">
+        <Input
+          placeholder="admin@dentova.com"
+          size="sm"
+          type="email"
+          {...register("email")}
+        />
+        {errors.email && (
+          <span className="mt-1 block text-xs font-semibold text-red-600">
             {errors.email.message}
           </span>
-        ) : null}
+        )}
       </label>
       <label className="block">
         <span className={adminLabelClassName}>Mot de passe</span>
-        <Input placeholder="Votre mot de passe" size="sm" type="password" {...register("password")} />
-        {errors.password ? (
-          <span className="mt-1 block text-sm font-semibold text-dentova-magenta">
+        <Input
+          placeholder="Votre mot de passe"
+          size="sm"
+          type="password"
+          {...register("password")}
+        />
+        {errors.password && (
+          <span className="mt-1 block text-xs font-semibold text-red-600">
             {errors.password.message}
           </span>
-        ) : null}
+        )}
       </label>
-      <Button className="w-full" disabled={isSubmitting} size="sm" type="submit">
-        <LogIn className="h-5 w-5" />
+      <Button
+        className="w-full"
+        disabled={isSubmitting}
+        size="sm"
+        type="submit"
+        variant="primary"
+      >
+        {isSubmitting ? (
+          <Loader className="h-4 w-4 animate-spin" />
+        ) : (
+          <LogIn className="h-4 w-4" />
+        )}
         Se connecter
       </Button>
     </form>
