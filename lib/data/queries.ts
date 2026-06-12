@@ -80,6 +80,25 @@ export async function getPublishedCourses(options?: {
   );
 }
 
+export async function getUpcomingCourses(limit = 3) {
+  if (!(await ensureDb())) {
+    return [] as CourseType[];
+  }
+
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+
+  const courses = await Course.find({ published: true, date: { $gte: now } })
+    .sort({ date: 1 })
+    .limit(limit)
+    .populate("categoryId")
+    .lean();
+
+  return courses.map((doc) =>
+    serializeCourse(doc as Record<string, unknown>, resolveCategory(doc as Record<string, unknown>))
+  );
+}
+
 export async function getAllCourses() {
   if (!(await ensureDb())) {
     return [] as CourseType[];

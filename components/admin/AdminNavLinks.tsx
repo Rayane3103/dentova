@@ -63,6 +63,7 @@ export function AdminNavLinks({
                         )}
                         href={item.href}
                         onClick={onNavigate}
+                        prefetch={true}
                       >
                         <Icon
                           className={cn(

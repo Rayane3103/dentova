@@ -14,13 +14,14 @@ import {
   getPublishedCourses,
   getPublishedFaqs,
   getPublishedPosts,
-  getPublishedTestimonials
+  getPublishedTestimonials,
+  getUpcomingCourses
 } from "@/lib/data/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [session, courses, categories, testimonials, faqs, gallery, posts] =
+  const [session, courses, categories, testimonials, faqs, gallery, posts, upcomingCourses] =
     await Promise.all([
       getAdminSession(),
       getPublishedCourses({ homepageOnly: true }),
@@ -28,12 +29,13 @@ export default async function HomePage() {
       getPublishedTestimonials(),
       getPublishedFaqs(),
       getActiveWorkshopImages(),
-      getPublishedPosts({ limit: 3 })
+      getPublishedPosts({ limit: 3 }),
+      getUpcomingCourses(3)
     ]);
 
   return (
     <main className="bg-white">
-      <HeroSection />
+      <HeroSection upcomingCourses={upcomingCourses} />
       <AboutSection />
       <CoursesSection categories={categories} courses={courses} />
       <BlogSection authenticated={Boolean(session)} posts={posts} />

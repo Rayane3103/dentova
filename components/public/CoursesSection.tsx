@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import { CourseCard } from "@/components/public/CourseCard";
 import { Container } from "@/components/ui/Container";
+import { ParallaxBlob } from "@/components/public/ParallaxBlob";
 import { siteConfig } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { Category, Course } from "@/types";
@@ -53,28 +54,66 @@ export function CoursesSection({
       id="courses"
     >
       <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:4rem_4rem]" />
-      <div className="pointer-events-none absolute right-10 top-1/3 z-0 h-96 w-96 rounded-full bg-dentova-teal-600/5 blur-3xl" />
+      <ParallaxBlob
+        className="-right-40 top-1/3"
+        color="bg-dentova-teal-600/6"
+        size="400px"
+        speed={24}
+      />
+      <ParallaxBlob
+        className="-bottom-40 -left-40"
+        color="bg-dentova-magenta-500/4"
+        size="350px"
+        speed={28}
+        delay={1}
+      />
 
       <Container className="relative z-10">
-        <div className="mb-16 max-w-3xl text-left">
-          <span className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-dentova-teal-500/20 bg-dentova-teal-500/10 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-dentova-teal-300">
+        {/* Header */}
+        <motion.div
+          className="mb-16 max-w-3xl text-left"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.span
+            className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-dentova-teal-500/20 bg-dentova-teal-500/10 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-dentova-teal-300"
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: 0.05 }}
+          >
             <Award className="h-3 w-3 text-dentova-teal-400" />
             CATALOGUE DES FORMATIONS D&apos;ELITE
-          </span>
+          </motion.span>
           <h2 className="font-display text-3xl font-black leading-tight text-white sm:text-4xl lg:text-5xl">
             Prenez place pour nos prochaines{" "}
             <span className="bg-gradient-to-r from-dentova-teal-400 via-dentova-lavender to-dentova-magenta-300 bg-clip-text text-transparent">
               Masterclasses & Travaux Pratiques
             </span>
           </h2>
-          <p className="mt-4 max-w-2xl text-sm font-light text-dentova-navy-300">
+          <motion.p
+            className="mt-4 max-w-2xl text-sm font-light text-dentova-navy-300"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+          >
             Cliquez sur un cursus pour ouvrir sa fiche clinique structuree,
             explorer ses modules theoriques d&apos;excellence et postuler en
             ligne.
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
 
-        <div className="mb-12 grid grid-cols-1 items-end gap-8 border-b border-white/10 pb-8 lg:grid-cols-12">
+        {/* Filters */}
+        <motion.div
+          className="mb-12 grid grid-cols-1 items-end gap-8 border-b border-white/10 pb-8 lg:grid-cols-12"
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.45, delay: 0.15 }}
+        >
           <div className="flex flex-col gap-3 lg:col-span-8">
             <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-dentova-navy-400">
               <Filter className="h-2.5 w-2.5 text-dentova-teal-400" />
@@ -121,8 +160,9 @@ export function CoursesSection({
               ))}
             </div>
           </div>
-        </div>
+        </motion.div>
 
+        {/* Course cards grid */}
         <div className="grid min-h-[400px] grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           <AnimatePresence mode="popLayout">
             {courses.length > 0 ? (
@@ -139,7 +179,12 @@ export function CoursesSection({
                 </motion.div>
               ))
             ) : (
-              <div className="col-span-full flex flex-col items-center py-20 text-center">
+              <motion.div
+                className="col-span-full flex flex-col items-center py-20 text-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
                 <AlertCircle className="mb-2 h-8 w-8 text-dentova-navy-500" />
                 <p className="mb-1 text-lg font-bold text-dentova-navy-400">
                   Aucune session trouvee
@@ -158,12 +203,19 @@ export function CoursesSection({
                 >
                   Reinitialiser les filtres
                 </button>
-              </div>
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        <div className="mx-auto mt-16 flex max-w-4xl flex-col items-center gap-5 rounded-2xl border border-white/10 bg-white/5 p-6 text-left sm:flex-row">
+        {/* Info banner */}
+        <motion.div
+          className="mx-auto mt-16 flex max-w-4xl flex-col items-center gap-5 rounded-2xl border border-white/10 bg-white/5 p-6 text-left sm:flex-row"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.45, delay: 0.2 }}
+        >
           <div className="shrink-0 rounded-2xl border border-dentova-teal-500/20 bg-dentova-teal-500/10 p-3 text-dentova-teal-400">
             <Info className="h-5 w-5" />
           </div>
@@ -178,7 +230,7 @@ export function CoursesSection({
               pour un conseil personnalise.
             </p>
           </div>
-        </div>
+        </motion.div>
       </Container>
     </section>
   );

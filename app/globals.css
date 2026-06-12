@@ -97,8 +97,27 @@ select {
   animation-play-state: paused;
 }
 
+@keyframes admin-loading-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-loading-enter {
+  animation: admin-loading-enter 200ms ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dentova-marquee {
+    animation: none;
+  }
+
+  .admin-loading-enter {
     animation: none;
   }
 }

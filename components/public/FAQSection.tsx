@@ -33,29 +33,63 @@ export function FAQSection({ faqs }: { faqs: FAQItem[] }) {
 
   return (
     <section
-      className="relative bg-gradient-to-b from-dentova-navy-50 to-white px-6 py-24"
+      className="relative overflow-hidden bg-gradient-to-b from-dentova-navy-50 to-white px-6 py-24"
       id="faq"
     >
+      {/* Decorative */}
+      <motion.div
+        aria-hidden="true"
+        animate={{ y: [0, 20, 0] }}
+        className="pointer-events-none absolute -left-20 top-1/4 h-80 w-80 rounded-full bg-dentova-teal-500/[0.04] blur-3xl"
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+      />
+
       <Container className="max-w-4xl">
-        <div className="mb-16 text-center">
-          <span className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-dentova-teal-100 bg-dentova-teal-50 px-4 py-1 text-sm font-black uppercase tracking-widest text-dentova-teal-700">
+        {/* Header */}
+        <motion.div
+          className="mb-16 text-center"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.5 }}
+        >
+          <motion.span
+            className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-dentova-teal-100 bg-dentova-teal-50 px-4 py-1 text-sm font-black uppercase tracking-widest text-dentova-teal-700"
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.35, delay: 0.05 }}
+          >
             <HelpCircle className="h-3 w-3 text-dentova-teal-600" />
             VOS QUESTIONS REPONDUES
-          </span>
+          </motion.span>
           <h2 className="font-display text-3xl font-extrabold leading-tight text-dentova-navy-900 sm:text-4xl">
             Tout savoir sur nos{" "}
             <span className="bg-gradient-to-r from-dentova-magenta to-dentova-lavender bg-clip-text text-transparent">
               Formations & Congres
             </span>
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-base font-light text-dentova-navy-600">
+          <motion.p
+            className="mx-auto mt-4 max-w-2xl text-base font-light text-dentova-navy-600"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+          >
             Vous avez des interrogations sur le deroulement, le materiel fourni,
             les financements ou l&apos;hebergement en Algerie ? Consultez nos
             reponses immediates.
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
 
-        <div className="mb-10 flex flex-col items-center justify-between gap-4 md:flex-row">
+        {/* Filters */}
+        <motion.div
+          className="mb-10 flex flex-col items-center justify-between gap-4 md:flex-row"
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
           <div className="scrollbar-none flex w-full gap-2 overflow-x-auto pb-1 font-medium md:w-auto">
             {categories.map((cat) => (
               <button
@@ -87,9 +121,16 @@ export function FAQSection({ faqs }: { faqs: FAQItem[] }) {
             />
             <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-dentova-navy-400" />
           </div>
-        </div>
+        </motion.div>
 
-        <div className="flex flex-col gap-4">
+        {/* FAQ items */}
+        <motion.div
+          className="flex flex-col gap-4"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.3, delay: 0.15 }}
+        >
           <AnimatePresence mode="popLayout">
             {filteredFaqs.length > 0 ? (
               filteredFaqs.map((faq) => {
@@ -168,7 +209,7 @@ export function FAQSection({ faqs }: { faqs: FAQItem[] }) {
               </div>
             )}
           </AnimatePresence>
-        </div>
+        </motion.div>
       </Container>
     </section>
   );

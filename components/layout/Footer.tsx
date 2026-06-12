@@ -17,7 +17,6 @@ const quickLinks = [
   { href: "/#hero", label: "Accueil" },
   { href: "/#courses", label: "Formations" },
   { href: "/#about", label: "À propos" },
-  { href: "/inscription", label: "Inscription" },
   { href: "/#contact", label: "Contact" },
   { href: "/privacy", label: "Politique de confidentialité" },
   { href: "/terms", label: "Conditions d'utilisation" },

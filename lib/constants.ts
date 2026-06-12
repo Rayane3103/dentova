@@ -8,11 +8,9 @@ export const siteConfig = {
 
 export const navItems = [
   { href: "/#hero", label: "Accueil", id: "home" },
-  { href: "/#why-us", label: "Pourquoi nous ?", id: "why-us" },
   { href: "/#about", label: "Qui sommes-nous ?", id: "about" },
   { href: "/#courses", label: "Nos Formations", id: "courses" },
   { href: "/blog", label: "Blog", id: "blog" },
-  { href: "/inscription", label: "Inscription", id: "signup" },
   { href: "/#faq", label: "FAQ", id: "faq" },
   { href: "/#feedback", label: "Votre avis", id: "feedback" },
   { href: "/#contact", label: "Contact", id: "contact" }

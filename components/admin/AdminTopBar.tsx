@@ -235,6 +235,7 @@ export function AdminTopBar({ authenticated }: { authenticated: boolean }) {
                         href={result.href}
                         key={result.href}
                         onClick={closeSearch}
+                        prefetch={true}
                       >
                         <span className="truncate">{result.label}</span>
                         <span className="ml-auto shrink-0 text-xs text-slate-400">
@@ -258,6 +259,7 @@ export function AdminTopBar({ authenticated }: { authenticated: boolean }) {
                         href={action.href}
                         key={action.href}
                         onClick={closeSearch}
+                        prefetch={true}
                       >
                         <Icon className="h-4 w-4 shrink-0 text-slate-400" />
                         {action.label}
@@ -296,6 +298,7 @@ export function AdminTopBar({ authenticated }: { authenticated: boolean }) {
                     href={action.href}
                     key={action.href}
                     onClick={() => setCreateOpen(false)}
+                    prefetch={true}
                   >
                     <Icon className="h-4 w-4 text-slate-400" />
                     {action.label}

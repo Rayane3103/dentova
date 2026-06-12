@@ -9,6 +9,10 @@ export function AdminShell({
   authenticated?: boolean;
   children: React.ReactNode;
 }) {
+  if (!authenticated) {
+    return <>{children}</>;
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
       {/* Desktop Sidebar */}

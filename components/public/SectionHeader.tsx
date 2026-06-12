@@ -1,7 +1,10 @@
+"use client";
+
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 type SectionHeaderProps = {
-  eyebrow?: string;
+  eyebrow?: React.ReactNode;
   title: string;
   accent?: string;
   description?: string;
@@ -22,22 +25,30 @@ export function SectionHeader({
   const inverse = tone === "inverse";
 
   return (
-    <div
+    <motion.div
       className={cn(
         "mx-auto max-w-2xl",
         align === "center" ? "text-center" : "text-left"
       )}
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
     >
       {eyebrow ? (
-        <p
+        <motion.p
           className={cn(
             "mb-3 inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider",
             inverse ? "text-dentova-teal-300" : "text-dentova-teal-600"
           )}
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.05 }}
         >
           {icon}
           {eyebrow}
-        </p>
+        </motion.p>
       ) : null}
       <h2
         className={cn(
@@ -58,15 +69,19 @@ export function SectionHeader({
         ) : null}
       </h2>
       {description ? (
-        <p
+        <motion.p
           className={cn(
             "mt-3 text-sm leading-relaxed sm:text-base",
             inverse ? "text-white/70" : "text-dentova-navy-600"
           )}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.15 }}
         >
           {description}
-        </p>
+        </motion.p>
       ) : null}
-    </div>
+    </motion.div>
   );
 }
