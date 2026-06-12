@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { AdminHeader } from "@/components/admin/AdminHeader";
-import { AdminShell } from "@/components/admin/AdminShell";
 import { CategoryForm } from "@/components/admin/CategoryForm";
 import { getCategoryById } from "@/lib/data/queries";
 
@@ -17,8 +16,8 @@ export default async function EditCategoryPage({ params }: EditCategoryPageProps
   }
 
   return (
-    <AdminShell>
-      <AdminHeader title="Modifier la categorie" />
+    <>
+      <AdminHeader title="Modifier la catégorie" />
       <div className="mt-5">
         <CategoryForm
           categoryId={id}
@@ -29,6 +28,6 @@ export default async function EditCategoryPage({ params }: EditCategoryPageProps
           }}
         />
       </div>
-    </AdminShell>
+    </>
   );
 }

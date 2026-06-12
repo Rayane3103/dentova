@@ -1,5 +1,4 @@
 import { AdminHeader } from "@/components/admin/AdminHeader";
-import { AdminShell } from "@/components/admin/AdminShell";
 import {
   ReservationsCRM,
   type ReservationRecord
@@ -49,12 +48,12 @@ export default async function ReservationsPage() {
   }
 
   return (
-    <AdminShell>
+    <>
       <AdminHeader
         description="Gestion CRM des reservations de cours avec filtres, statuts et edition detaillee."
         title="Reservations"
       />
       <ReservationsCRM courses={courses} initialReservations={reservations} />
-    </AdminShell>
+    </>
   );
 }

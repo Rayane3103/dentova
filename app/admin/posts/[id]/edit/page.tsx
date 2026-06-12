@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { AdminHeader } from "@/components/admin/AdminHeader";
-import { AdminShell } from "@/components/admin/AdminShell";
 import { PostForm } from "@/components/admin/PostForm";
 import { getPostAdminRecord } from "@/lib/data/queries";
 
@@ -17,8 +16,8 @@ export default async function EditPostPage({ params }: RouteContext) {
   }
 
   return (
-    <AdminShell>
-      <AdminHeader title="Modifier le post" />
+    <>
+      <AdminHeader title="Modifier l'article" />
       <div className="mt-5">
         <PostForm
           initialValues={{
@@ -32,6 +31,6 @@ export default async function EditPostPage({ params }: RouteContext) {
           postId={id}
         />
       </div>
-    </AdminShell>
+    </>
   );
 }

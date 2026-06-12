@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { AdminHeader } from "@/components/admin/AdminHeader";
-import { AdminShell } from "@/components/admin/AdminShell";
 import { MentorForm } from "@/components/admin/MentorForm";
 import { tryConnectToDatabase } from "@/lib/db/connect";
 import { Mentor } from "@/models/Mentor";
@@ -23,8 +22,8 @@ export default async function EditMentorPage({ params }: EditMentorPageProps) {
   }
 
   return (
-    <AdminShell>
-      <AdminHeader title="Modifier le mentor" />
+    <>
+      <AdminHeader title="Modifier le formateur" />
       <div className="mt-5">
         <MentorForm
           initialValues={{
@@ -41,6 +40,6 @@ export default async function EditMentorPage({ params }: EditMentorPageProps) {
           mentorId={id}
         />
       </div>
-    </AdminShell>
+    </>
   );
 }

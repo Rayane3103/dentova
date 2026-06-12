@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { AdminHeader } from "@/components/admin/AdminHeader";
-import { AdminShell } from "@/components/admin/AdminShell";
 import { CourseForm } from "@/components/admin/CourseForm";
 import { getCourseAdminRecord } from "@/lib/data/queries";
 
@@ -17,7 +16,7 @@ export default async function EditCoursePage({ params }: EditCoursePageProps) {
   }
 
   return (
-    <AdminShell>
+    <>
       <AdminHeader title="Modifier le cours" />
       <div className="mt-5">
         <CourseForm
@@ -44,6 +43,6 @@ export default async function EditCoursePage({ params }: EditCoursePageProps) {
           }}
         />
       </div>
-    </AdminShell>
+    </>
   );
 }

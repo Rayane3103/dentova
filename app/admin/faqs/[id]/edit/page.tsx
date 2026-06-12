@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { AdminHeader } from "@/components/admin/AdminHeader";
-import { AdminShell } from "@/components/admin/AdminShell";
 import { FAQForm } from "@/components/admin/FAQForm";
 import { tryConnectToDatabase } from "@/lib/db/connect";
 import { FAQ } from "@/models/FAQ";
@@ -23,7 +22,7 @@ export default async function EditFaqPage({ params }: EditFaqPageProps) {
   }
 
   return (
-    <AdminShell>
+    <>
       <AdminHeader title="Modifier la FAQ" />
       <div className="mt-5">
         <FAQForm
@@ -37,6 +36,6 @@ export default async function EditFaqPage({ params }: EditFaqPageProps) {
           }}
         />
       </div>
-    </AdminShell>
+    </>
   );
 }
