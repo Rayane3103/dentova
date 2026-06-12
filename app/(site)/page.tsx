@@ -33,8 +33,8 @@ export default async function HomePage() {
       <CoursesSection categories={categories} courses={courses} />
       <TestimonialsSection testimonials={testimonials} />
       <FAQSection faqs={faqs} />
-      <ImageGallery images={gallery} />
       <ContactSection />
+      {gallery.length > 0 ? <ImageGallery images={gallery} /> : null}
     </main>
   );
 }

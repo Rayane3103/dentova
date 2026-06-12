@@ -95,14 +95,16 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
 
       <Container className="grid gap-6 py-10 lg:grid-cols-[1fr_320px] lg:items-start">
         <div className="space-y-5">
-          <div className="relative mx-auto aspect-[16/10] max-w-lg overflow-hidden rounded-lg bg-white shadow-luxe">
+          <div className="relative overflow-hidden rounded-lg bg-white shadow-luxe">
             <Image
               alt={course.title}
-              className="object-cover"
-              fill
+              className="rounded-lg"
+              height={0}
               priority
-              sizes="(min-width: 1024px) 480px, 92vw"
+              sizes="(min-width: 1024px) 680px, 92vw"
               src={course.imageUrl}
+              style={{ width: "100%", height: "auto" }}
+              width={0}
             />
             <div className="absolute bottom-3 left-3 rounded-full bg-dentova-cyan px-3 py-1 text-sm font-extrabold text-dentova-graphite shadow-card">
               {formatPrice(course.price)}
