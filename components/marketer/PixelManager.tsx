@@ -4,7 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   BadgeCheck,
   CheckCircle,
+  ClipboardPaste,
+  Code2,
   ExternalLink,
+  Fingerprint,
   Loader,
   Pencil,
   Plus,
@@ -15,7 +18,7 @@ import {
   X,
   XCircle
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
@@ -26,6 +29,41 @@ import { cn } from "@/lib/utils";
 import type { Pixel } from "@/types";
 
 type PixelFormValues = z.infer<typeof pixelSchema>;
+
+/**
+ * Extract the Meta Pixel ID from a full Meta Pixel code snippet.
+ *
+ * Handles both patterns found in the standard Meta Pixel code:
+ * - `fbq('init', '1234567890123456')` in the <script> block
+ * - `tr?id=1234567890123456` in the <noscript> fallback
+ */
+function extractMetaPixelId(code: string): string | null {
+  // Pattern 1: fbq('init', 'XXXXX') or fbq("init", "XXXXX")
+  const fbqMatch = code.match(
+    /fbq\s*\(\s*['"]init['"]\s*,\s*['"](\d{15,16})['"]/
+  );
+  if (fbqMatch) return fbqMatch[1];
+
+  // Pattern 2: tr?id=XXXXX (in noscript img src)
+  const trMatch = code.match(/tr\?id=(\d{15,16})/);
+  if (trMatch) return trMatch[1];
+
+  return null;
+}
+
+/**
+ * Extract the TikTok Pixel ID from a full TikTok Pixel code snippet.
+ *
+ * Handles the pattern:
+ * - `ttq.load('ABCDEFGHIJ1234567')` in the <script> block
+ */
+function extractTiktokPixelId(code: string): string | null {
+  const match = code.match(
+    /ttq\.load\s*\(\s*['"]([A-Za-z0-9]{15,24})['"]/
+  );
+  if (match) return match[1];
+  return null;
+}
 
 const PLATFORM_BADGES: Record<string, string> = {
   meta: "bg-blue-50 text-blue-700 border-blue-200",
@@ -58,6 +96,11 @@ export function PixelManager() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [toggling, setToggling] = useState<string | null>(null);
+  const [codeInput, setCodeInput] = useState("");
+  const [showCodeInput, setShowCodeInput] = useState(false);
+  const [extractedId, setExtractedId] = useState<string | null>(null);
+  const [extractError, setExtractError] = useState<string | null>(null);
+  const codeTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   const loadPixels = async () => {
     try {
@@ -80,6 +123,7 @@ export function PixelManager() {
     handleSubmit,
     register,
     reset,
+    setValue,
     watch
   } = useForm<PixelFormValues>({
     resolver: zodResolver(pixelSchema),
@@ -103,6 +147,10 @@ export function PixelManager() {
       notes: ""
     });
     setEditingId(null);
+    setCodeInput("");
+    setShowCodeInput(false);
+    setExtractedId(null);
+    setExtractError(null);
     setShowForm(true);
   };
 
@@ -115,13 +163,43 @@ export function PixelManager() {
       notes: pixel.notes || ""
     });
     setEditingId(pixel.id);
+    setCodeInput("");
+    setShowCodeInput(false);
+    setExtractedId(null);
+    setExtractError(null);
     setShowForm(true);
   };
 
   const cancelForm = () => {
     setShowForm(false);
     setEditingId(null);
+    setCodeInput("");
+    setShowCodeInput(false);
+    setExtractedId(null);
+    setExtractError(null);
     reset();
+  };
+
+  const handleCodeChange = (value: string) => {
+    setCodeInput(value);
+    setExtractedId(null);
+    setExtractError(null);
+
+    if (!value.trim()) return;
+
+    const platformVal = watch("platform") || "meta";
+    const extractFn =
+      platformVal === "meta" ? extractMetaPixelId : extractTiktokPixelId;
+    const id = extractFn(value.trim());
+
+    if (id) {
+      setExtractedId(id);
+      setValue("pixelId", id, { shouldValidate: true });
+    } else {
+      setExtractError(
+        "Aucun ID de pixel trouvé dans le code. Vérifiez que vous avez bien copié le code complet."
+      );
+    }
   };
 
   const onSubmit = async (values: PixelFormValues) => {
@@ -581,7 +659,14 @@ ttq.load('${pixel.pixelId}');ttq.page();}(window,document,'ttq');
                 </span>
                 <select
                   className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-dentova-navy focus:outline-none focus:ring-2 focus:ring-dentova-navy/20"
-                  {...register("platform")}
+                  {...register("platform", {
+                    onChange: () => {
+                      // Clear code inputs when platform changes
+                      setCodeInput("");
+                      setExtractedId(null);
+                      setExtractError(null);
+                    }
+                  })}
                   disabled={!!editingId}
                 >
                   <option value="meta">
@@ -596,18 +681,30 @@ ttq.load('${pixel.pixelId}');ttq.page();}(window,document,'ttq');
                 <span className="mb-1.5 block text-sm font-semibold text-slate-700">
                   ID du pixel
                 </span>
-                <Input
-                  placeholder={
-                    selectedPlatform === "meta"
-                      ? "Ex: 1234567890123456"
-                      : "Ex: ABCDEFGHIJ1234567890"
-                  }
-                  size="md"
-                  {...register("pixelId")}
-                />
+                <div className="relative">
+                  <Input
+                    placeholder={
+                      selectedPlatform === "meta"
+                        ? "Ex: 1234567890123456"
+                        : "Ex: ABCDEFGHIJ1234567890"
+                    }
+                    size="md"
+                    {...register("pixelId")}
+                    className={extractedId ? "pr-10" : ""}
+                  />
+                  {extractedId && (
+                    <CheckCircle className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-500" />
+                  )}
+                </div>
                 {errors.pixelId && (
                   <span className="mt-1 block text-xs font-semibold text-red-600">
                     {errors.pixelId.message}
+                  </span>
+                )}
+                {extractedId && (
+                  <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
+                    <CheckCircle className="h-3 w-3" />
+                    ID extrait automatiquement : {extractedId}
                   </span>
                 )}
                 <p className="mt-1 text-xs text-slate-400">
@@ -616,6 +713,78 @@ ttq.load('${pixel.pixelId}');ttq.page();}(window,document,'ttq');
                     : "ID alphanumérique à 15-24 caractères depuis le centre d'annonces TikTok."}
                 </p>
               </label>
+
+              {/* Code Paste (Meta & TikTok) */}
+              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-4">
+                <button
+                  className="flex w-full items-center gap-2 text-left text-sm font-semibold text-slate-600 transition hover:text-slate-800"
+                  onClick={() => {
+                    setShowCodeInput(!showCodeInput);
+                    if (showCodeInput) {
+                      setCodeInput("");
+                      setExtractedId(null);
+                      setExtractError(null);
+                    }
+                  }}
+                  type="button"
+                >
+                  {showCodeInput ? (
+                    <Fingerprint className="h-4 w-4 text-dentova-teal-500" />
+                  ) : (
+                    <ClipboardPaste className="h-4 w-4" />
+                  )}
+                  {showCodeInput
+                    ? "Saisir l'ID manuellement"
+                    : selectedPlatform === "meta"
+                      ? "Ou collez le code Meta Pixel complet"
+                      : "Ou collez le code TikTok Pixel complet"}
+                </button>
+
+                {showCodeInput && (
+                  <div className="mt-3 space-y-3">
+                    <div>
+                      <textarea
+                        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-xs font-mono text-slate-700 shadow-sm transition placeholder:text-slate-400 focus:border-dentova-navy focus:outline-none focus:ring-2 focus:ring-dentova-navy/20"
+                        onChange={(e) => handleCodeChange(e.target.value)}
+                        placeholder={
+                          selectedPlatform === "meta"
+                            ? "Collez ici le code Meta Pixel complet copié depuis le gestionnaire d'événements Meta...\n\n<!-- Meta Pixel Code -->\n<script>\n!function(f,b,e,v,n,t,s)...\nfbq('init', '1234567890123456');\nfbq('track', 'PageView');\n</script>\n<noscript>...</noscript>\n<!-- End Meta Pixel Code -->"
+                            : "Collez ici le code TikTok Pixel complet copié depuis le centre d'annonces TikTok..."
+                        }
+                        ref={codeTextareaRef}
+                        rows={6}
+                        spellCheck={false}
+                        value={codeInput}
+                      />
+                      <p className="mt-1 text-xs text-slate-400">
+                        L&apos;ID du pixel sera automatiquement extrait du code
+                        que vous collez.
+                      </p>
+                    </div>
+
+                    {extractError && (
+                      <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-700">
+                        <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        <span>{extractError}</span>
+                      </div>
+                    )}
+
+                    {extractedId && (
+                      <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700">
+                        <Code2 className="h-3.5 w-3.5 shrink-0" />
+                        <span>
+                          <strong>Pixel ID détecté :</strong> {extractedId}
+                          {" — "}
+                          {selectedPlatform === "meta"
+                            ? "Meta"
+                            : "TikTok"}{" "}
+                          pixel configuré automatiquement.
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
 
               {/* Label */}
               <label className="block">
