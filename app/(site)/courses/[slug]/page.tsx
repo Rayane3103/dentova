@@ -36,8 +36,34 @@ export async function generateMetadata({
   const { slug } = await params;
   const course = await getCourseBySlug(slug);
 
+  if (!course) {
+    return { title: "Cours" };
+  }
+
   return {
-    title: course?.title || "Cours"
+    title: course.title,
+    description: course.excerpt || course.description?.slice(0, 160),
+    openGraph: {
+      title: course.title,
+      description: course.excerpt || course.description?.slice(0, 160),
+      url: `/courses/${course.slug}`,
+      type: "website",
+      images: course.imageUrl
+        ? [
+            {
+              url: course.imageUrl,
+              width: 1200,
+              height: 630,
+              alt: course.title
+            }
+          ]
+        : [],
+      siteName: "Dentova"
+    },
+    other: {
+      "product:price:amount": course.price.toString(),
+      "product:price:currency": "DZD"
+    }
   };
 }
 
@@ -54,6 +80,28 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
 
   return (
     <main className="bg-dentova-canvas">
+      {/* ── JSON-LD structured data for Meta/Google ── */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: course.title,
+            description: course.excerpt || course.description?.slice(0, 200),
+            image: course.imageUrl,
+            category: course.category?.name || "Formation",
+            offers: {
+              "@type": "Offer",
+              price: course.price,
+              priceCurrency: "DZD",
+              url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://dentova.dz"}/courses/${course.slug}`,
+              availability: "https://schema.org/InStock"
+            }
+          })
+        }}
+        type="application/ld+json"
+      />
+
       {/* ── Hero — course image as background ── */}
       <section className="relative isolate overflow-hidden bg-dentova-graphite pb-14 pt-24 text-white sm:pb-20 sm:pt-32">
         {course.imageUrl ? (
