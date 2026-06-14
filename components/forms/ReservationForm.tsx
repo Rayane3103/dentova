@@ -1,7 +1,17 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, Loader, ShieldCheck } from "lucide-react";
+import {
+  Briefcase,
+  CheckCircle2,
+  Loader,
+  Mail,
+  MapPin,
+  MessageSquare,
+  Phone,
+  ShieldCheck,
+  User
+} from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -9,7 +19,6 @@ import type { z } from "zod";
 import { SuccessDialog } from "@/components/ui/SuccessDialog";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
-import { formatPrice } from "@/lib/format";
 import { reservationSchema } from "@/lib/validators/reservation";
 import type { Course } from "@/types";
 
@@ -45,7 +54,7 @@ export function ReservationForm({ course }: { course: Course }) {
     });
 
     if (!response.ok) {
-      toast.error("Reservation non envoyee. Reessayez dans un instant.");
+      toast.error("Réservation non envoyée. Réessayez dans un instant.");
       return;
     }
 
@@ -56,107 +65,147 @@ export function ReservationForm({ course }: { course: Course }) {
   return (
     <>
       <form
-        className="rounded-lg border border-white/10 bg-dentova-graphite p-4 text-white shadow-luxe"
+        className="rounded-2xl border border-dentova-ash bg-white p-6 shadow-card"
         onSubmit={handleSubmit(onSubmit)}
       >
-        <h2 className="text-xl font-extrabold leading-tight">Reservez votre place</h2>
-        <p className="mt-1.5 text-sm font-semibold text-white/70">
-          Places limitees. Inscrivez-vous maintenant pour eviter toute deception.
-        </p>
-        <div className="mt-3 rounded-lg border border-white/10 bg-white/10 px-3 py-2.5">
-          <div className="flex items-center justify-between text-sm font-bold">
-            <span>Prix du cours</span>
-            <span className="text-dentova-cyan">{formatPrice(course.price)}</span>
-          </div>
+        <div className="mb-5">
+          <h2 className="text-lg font-extrabold text-dentova-graphite">
+            Réservez votre place
+          </h2>
+          <p className="mt-1 text-sm font-medium text-dentova-muted">
+            Remplissez le formulaire ci-dessous. Notre équipe vous contactera
+            pour confirmer votre inscription.
+          </p>
         </div>
+
         <input type="hidden" {...register("courseId")} />
-        <div className="mt-3 space-y-2">
-          <FieldError error={errors.fullName?.message}>
+
+        <div className="space-y-4">
+          <Field
+            error={errors.fullName?.message}
+            icon={User}
+            label="Nom complet"
+            required
+          >
             <Input
-              className="h-9 text-sm"
-              placeholder="Nom complet"
+              placeholder="Votre nom et prénom"
               {...register("fullName")}
             />
-          </FieldError>
-          <FieldError error={errors.email?.message}>
+          </Field>
+
+          <Field
+            error={errors.email?.message}
+            icon={Mail}
+            label="Email"
+            required
+          >
             <Input
-              className="h-9 text-sm"
-              placeholder="Email"
+              placeholder="votre@email.com"
               type="email"
               {...register("email")}
             />
-          </FieldError>
-          <FieldError error={errors.phone?.message}>
+          </Field>
+
+          <Field
+            error={errors.phone?.message}
+            icon={Phone}
+            label="Téléphone"
+            required
+          >
             <Input
-              className="h-9 text-sm"
-              placeholder="Telephone"
+              placeholder="05 XX XX XX XX"
               {...register("phone")}
             />
-          </FieldError>
-          <FieldError error={errors.wilaya?.message}>
+          </Field>
+
+          <Field
+            error={errors.wilaya?.message}
+            icon={MapPin}
+            label="Wilaya"
+            required
+          >
             <Input
-              className="h-9 text-sm"
-              placeholder="Wilaya"
+              placeholder="Votre wilaya"
               {...register("wilaya")}
             />
-          </FieldError>
-          <Input
-            className="h-9 text-sm"
-            placeholder="Profession (optionnel)"
-            {...register("profession")}
-          />
-          <Textarea
-            className="min-h-16 py-2 text-sm"
-            placeholder="Message (optionnel)"
-            {...register("message")}
-          />
+          </Field>
+
+          <Field icon={Briefcase} label="Profession">
+            <Input
+              placeholder="Votre profession (optionnel)"
+              {...register("profession")}
+            />
+          </Field>
+
+          <Field icon={MessageSquare} label="Message">
+            <Textarea
+              className="min-h-[80px]"
+              placeholder="Un message ou une question ? (optionnel)"
+              {...register("message")}
+            />
+          </Field>
         </div>
+
         <button
-          className="dentova-focus mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-dentova-cyan px-4 py-2.5 text-sm font-bold text-dentova-graphite shadow-md transition hover:bg-dentova-teal-300 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
+          className="dentova-focus mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-dentova-graphite px-5 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-dentova-graphite/90 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
           disabled={isSubmitting}
           type="submit"
         >
           {isSubmitting ? (
             <>
               <Loader className="h-4 w-4 animate-spin" />
-              Envoi en cours...
+              Envoi en cours…
             </>
           ) : (
             <>
               <CheckCircle2 className="h-4 w-4" />
-              S&apos;inscrire — {formatPrice(course.price)}
+              Confirmer l&apos;inscription
             </>
           )}
         </button>
-        <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-xs font-semibold text-white/60">
-          <ShieldCheck className="h-3.5 w-3.5" />
-          Vos informations sont securisees et ne seront jamais partagees.
+
+        <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs font-medium text-dentova-muted">
+          <ShieldCheck className="h-3.5 w-3.5 text-dentova-teal" />
+          Vos informations sont sécurisées et ne seront jamais partagées.
         </p>
       </form>
 
       {showSuccess ? (
         <SuccessDialog
-          description="Votre demande de reservation a bien ete envoyee. Notre equipe vous contactera tres bientot pour confirmer votre place."
+          description="Votre demande de réservation a bien été envoyée. Notre équipe vous contactera très bientôt pour confirmer votre place."
           onClose={() => setShowSuccess(false)}
-          title="Inscription envoyee !"
+          title="Inscription envoyée !"
         />
       ) : null}
     </>
   );
 }
 
-function FieldError({
+function Field({
   children,
-  error
+  error,
+  icon: Icon,
+  label,
+  required
 }: {
   children: React.ReactNode;
   error?: string;
+  icon: typeof User;
+  label: string;
+  required?: boolean;
 }) {
   return (
     <label className="block">
+      <span className="mb-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-dentova-muted">
+        <Icon className="h-3.5 w-3.5" />
+        {label}
+        {required ? (
+          <span className="text-dentova-magenta">*</span>
+        ) : null}
+      </span>
       {children}
       {error ? (
-        <span className="mt-0.5 block text-xs font-semibold text-dentova-cyan">
+        <span className="mt-1 block text-xs font-semibold text-dentova-magenta">
           {error}
         </span>
       ) : null}

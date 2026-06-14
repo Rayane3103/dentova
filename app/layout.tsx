@@ -30,6 +30,9 @@ export const metadata: Metadata = {
     icon: "/brand/logomark.svg",
     shortcut: "/brand/logomark.svg",
     apple: "/brand/logomark.svg"
+  },
+  other: {
+    "facebook-domain-verification": "7f1fnhpywsodc1igbht9w1q7jwq71v"
   }
 };
 
@@ -42,6 +45,7 @@ export default function RootLayout({
     <html
       lang="fr"
       className={`${inter.variable} ${darkerGrotesque.variable}`}
+      suppressHydrationWarning
     >
       <body className="font-sans antialiased" suppressHydrationWarning>
         <TopLoader />

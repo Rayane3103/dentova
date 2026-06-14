@@ -159,7 +159,7 @@ export function ImageGallery({ images }: { images: WorkshopImage[] }) {
                   aria-label={`Afficher ${image.title}`}
                   aria-pressed={index === activeIndex}
                   className={cn(
-                    "group relative min-h-[120px] w-full overflow-hidden rounded-2xl bg-dentova-navy-900 shadow-card transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dentova-teal-500 focus-visible:ring-offset-2 sm:min-h-[140px] lg:min-h-0",
+                    "group relative min-h-[120px] w-full overflow-hidden rounded-2xl bg-dentova-navy-900 shadow-card transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dentova-teal-500 focus-visible:ring-offset-2 sm:min-h-[140px] lg:min-h-[180px]",
                     index === activeIndex
                       ? "ring-2 ring-dentova-teal-500 ring-offset-2"
                       : "hover:ring-2 hover:ring-white/40 hover:ring-offset-2"

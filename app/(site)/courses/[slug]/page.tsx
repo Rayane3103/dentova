@@ -54,133 +54,171 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
 
   return (
     <main className="bg-dentova-canvas">
-      <section className="relative isolate overflow-hidden bg-dentova-graphite py-10 text-white sm:py-12">
-        <Image
-          alt="Atelier clinique Dentova"
-          className="absolute inset-0 -z-20 object-cover"
-          fill
-          priority
-          sizes="100vw"
-          src="/images/assets/about-clinical.webp"
-        />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-br from-dentova-graphite/95 via-dentova-graphite/80 to-dentova-graphite/40" />
-        <Container className="relative grid gap-5 lg:grid-cols-[1fr_280px] lg:items-end">
-          <div>
-            <Badge className="bg-white text-dentova-graphite">
-              {course.category.name}
+      {/* ── Hero — course image as background ── */}
+      <section className="relative isolate overflow-hidden bg-dentova-graphite pb-14 pt-24 text-white sm:pb-20 sm:pt-32">
+        {course.imageUrl ? (
+          <Image
+            alt={course.title}
+            className="absolute inset-0 -z-20 object-cover"
+            fill
+            priority
+            sizes="100vw"
+            src={course.imageUrl}
+          />
+        ) : null}
+        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-dentova-graphite via-dentova-graphite/85 to-dentova-graphite/50" />
+
+        <Container>
+          <div className="mx-auto max-w-3xl text-center">
+            <Badge className="mb-4 bg-white/15 text-white backdrop-blur-sm">
+              {course.category?.name ?? "Formation"}
             </Badge>
-            <h1 className="mt-3 max-w-3xl text-3xl font-extrabold leading-tight sm:text-4xl">
+            <h1 className="text-3xl font-extrabold leading-tight sm:text-4xl lg:text-5xl">
               {course.title}
             </h1>
             {course.subtitle ? (
-              <p className="mt-2 max-w-2xl text-base font-bold leading-relaxed text-white/70 sm:text-lg">
+              <p className="mt-3 text-lg font-semibold leading-relaxed text-white/75">
                 {course.subtitle}
               </p>
             ) : null}
-          </div>
-          <div className="rounded-lg border border-white/20 bg-white/10 p-4 backdrop-blur-xl">
-            <p className="text-xs font-extrabold uppercase text-dentova-cyan">
-              Session ouverte
-            </p>
-            <p className="mt-2 text-2xl font-extrabold text-white">
-              {formatPrice(course.price)}
-            </p>
-            <p className="mt-1.5 text-sm font-semibold text-white/70">
-              {formatCourseDate(course.date)}
-              {course.time ? ` - ${course.time}` : ""}
-            </p>
+
+            {/* Quick info pills */}
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <InfoPill icon={CalendarDays} text={formatCourseDate(course.date)} />
+              {course.time ? (
+                <InfoPill icon={Clock} text={course.time} />
+              ) : null}
+              <InfoPill icon={MapPin} text={course.location} />
+              <InfoPill icon={UserRound} text={course.instructor} />
+            </div>
           </div>
         </Container>
       </section>
 
-      <Container className="grid gap-6 py-10 lg:grid-cols-[1fr_320px] lg:items-start">
-        <div className="space-y-5">
-          <div className="relative overflow-hidden rounded-lg bg-white shadow-luxe max-w-[80%]">
-            <Image
-              alt={course.title}
-              className="rounded-lg"
-              height={0}
-              priority
-              sizes="(min-width: 1024px) 544px, 74vw"
-              src={course.imageUrl}
-              style={{ width: "100%", height: "auto" }}
-              width={0}
-            />
-            <div className="absolute bottom-3 left-3 rounded-full bg-dentova-cyan px-3 py-1 text-sm font-extrabold text-dentova-graphite shadow-card">
-              {formatPrice(course.price)}
+      {/* ── Content: Image + Form side by side ── */}
+      <Container className="py-12 lg:py-16">
+        <div className="mx-auto max-w-5xl">
+          <div className="grid gap-10 lg:grid-cols-[1fr_380px] lg:items-start">
+            {/* Left column — image → description → details */}
+            <div className="space-y-7">
+              <div className="relative overflow-hidden rounded-2xl bg-white shadow-luxe">
+                <Image
+                  alt={course.title}
+                  className="w-full object-contain"
+                  height={0}
+                  priority
+                  sizes="(min-width: 1024px) 596px, 80vw"
+                  src={course.imageUrl}
+                  style={{ width: "100%", height: "auto" }}
+                  width={0}
+                />
+                <div className="absolute bottom-4 left-4 rounded-full bg-dentova-cyan px-4 py-1.5 text-sm font-extrabold text-dentova-graphite shadow-card">
+                  {formatPrice(course.price)}
+                </div>
+              </div>
+
+              <section>
+                <h2 className="mb-4 text-2xl font-extrabold text-dentova-graphite">
+                  À propos de cette formation
+                </h2>
+                <div className="whitespace-pre-line text-base leading-relaxed text-dentova-muted">
+                  {course.description}
+                </div>
+              </section>
+
+              <Card className="overflow-hidden">
+                <div className="border-b border-dentova-ash px-6 py-4">
+                  <h2 className="flex items-center gap-2 text-lg font-extrabold text-dentova-graphite">
+                    <CalendarDays className="h-5 w-5 text-dentova-teal" />
+                    Détails du cours
+                  </h2>
+                </div>
+                <div className="grid gap-0 divide-y divide-dentova-ash sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+                  <DetailRow icon={UserRound} label="Formateur" value={course.instructor} />
+                  <DetailRow icon={MapPin} label="Lieu" value={course.location} />
+                  <DetailRow
+                    icon={Clock}
+                    label="Date & Heure"
+                    value={`${formatCourseDate(course.date)}${course.time ? ` — ${course.time}` : ""}`}
+                  />
+                  <DetailRow
+                    icon={Phone}
+                    label="Contact"
+                    value={course.contactPhone}
+                    subvalue={course.contactEmail}
+                  />
+                </div>
+              </Card>
             </div>
+
+            {/* Right column — Form + sidebar cards */}
+            <aside className="space-y-5 lg:sticky lg:top-24">
+              {/* Price card */}
+              <Card className="overflow-hidden">
+                <div className="bg-dentova-graphite px-6 py-5 text-center text-white">
+                  <p className="text-sm font-semibold text-white/60">Prix de la formation</p>
+                  <p className="mt-1 text-3xl font-extrabold">{formatPrice(course.price)}</p>
+                  {course.maxSeats ? (
+                    <p className="mt-1.5 text-xs font-medium text-white/50">
+                      Places limitées — {course.maxSeats} participants maximum
+                    </p>
+                  ) : null}
+                </div>
+              </Card>
+
+              <ReservationForm course={course} />
+
+              <Card className="p-5">
+                <h2 className="mb-3 flex items-center gap-2 text-sm font-extrabold uppercase tracking-wider text-dentova-muted">
+                  <CheckCircle2 className="h-4 w-4 text-dentova-teal" />
+                  Ce qui est inclus
+                </h2>
+                <ul className="space-y-2.5">
+                  {includedBenefits.map((benefit) => (
+                    <li
+                      className="flex items-start gap-2.5 text-sm font-semibold text-dentova-graphite"
+                      key={benefit}
+                    >
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-dentova-teal" />
+                      {benefit}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+
+              <Card className="bg-dentova-mint/50 p-5">
+                <h2 className="mb-2 flex items-center gap-2 text-sm font-extrabold text-dentova-graphite">
+                  <Mail className="h-4 w-4 text-dentova-teal" />
+                  Besoin d&apos;aide ?
+                </h2>
+                <p className="text-sm leading-relaxed text-dentova-muted">
+                  Contactez l&apos;équipe Dentova pour toute question sur cette
+                  formation ou pour une inscription de groupe.
+                </p>
+              </Card>
+            </aside>
           </div>
-
-          <Card className="p-5">
-            <h2 className="mb-4 flex items-center gap-2 text-xl font-extrabold text-dentova-graphite">
-              <CalendarDays className="h-5 w-5 text-dentova-cyan" />
-              Details du Cours
-            </h2>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Detail icon={UserRound} label="Formateur" value={course.instructor} />
-              <Detail icon={MapPin} label="Lieu" value={course.location} />
-              <Detail
-                icon={Phone}
-                label="Contact"
-                subvalue={course.contactEmail}
-                value={course.contactPhone}
-              />
-              <Detail
-                icon={Clock}
-                label="Date & Heure"
-                value={`${formatCourseDate(course.date)}${course.time ? ` - ${course.time}` : ""}`}
-              />
-            </div>
-          </Card>
-
-          <Card className="p-5 max-w-[85%]">
-            <h2 className="mb-3 text-xl font-extrabold text-dentova-graphite">
-              A propos de ce cours
-            </h2>
-            <p className="whitespace-pre-line text-base leading-relaxed text-dentova-muted">
-              {course.description}
-            </p>
-          </Card>
         </div>
-
-        <aside className="space-y-4 lg:sticky lg:top-24">
-          <ReservationForm course={course} />
-          <Card className="p-4">
-            <h2 className="mb-3 flex items-center gap-2 text-lg font-extrabold text-dentova-graphite">
-              <CheckCircle2 className="h-4 w-4 text-dentova-cyan" />
-              Ce qui est inclus
-            </h2>
-            <ul className="space-y-2">
-              {includedBenefits.map((benefit) => (
-                <li
-                  className="flex items-center gap-2 text-sm font-semibold text-dentova-muted"
-                  key={benefit}
-                >
-                  <CheckCircle2 className="h-4 w-4 shrink-0 text-dentova-cyan" />
-                  {benefit}
-                </li>
-              ))}
-            </ul>
-          </Card>
-          <Card className="p-4">
-            <h2 className="mb-2 flex items-center gap-2 text-lg font-extrabold text-dentova-graphite">
-              <Mail className="h-4 w-4 text-dentova-cyan" />
-              Besoin d&apos;aide ?
-            </h2>
-            <p className="text-sm text-dentova-muted">
-              Contactez l&apos;equipe Dentova pour confirmer les disponibilites ou
-              demander plus d&apos;informations.
-            </p>
-          </Card>
-        </aside>
       </Container>
 
+      {/* Gallery */}
       {gallery.length > 0 ? <ImageGallery images={gallery} /> : null}
     </main>
   );
 }
 
-function Detail({
+/* ── Helper components ── */
+
+function InfoPill({ icon: Icon, text }: { icon: typeof CalendarDays; text: string }) {
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold backdrop-blur-sm">
+      <Icon className="h-4 w-4 text-dentova-teal" />
+      {text}
+    </span>
+  );
+}
+
+function DetailRow({
   icon: Icon,
   label,
   subvalue,
@@ -192,15 +230,19 @@ function Detail({
   value: string;
 }) {
   return (
-    <div className="flex gap-2.5">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-dentova-mint text-dentova-graphite">
-        <Icon className="h-4 w-4" />
+    <div className="flex gap-3 px-6 py-4">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-dentova-mint">
+        <Icon className="h-4 w-4 text-dentova-graphite" />
       </div>
-      <div>
-        <p className="text-xs font-bold text-dentova-muted">{label}</p>
+      <div className="min-w-0">
+        <p className="text-xs font-bold uppercase tracking-wider text-dentova-muted">
+          {label}
+        </p>
         <p className="text-sm font-extrabold text-dentova-graphite">{value}</p>
         {subvalue ? (
-          <p className="text-xs font-semibold text-dentova-cyan">{subvalue}</p>
+          <p className="truncate text-xs font-semibold text-dentova-teal">
+            {subvalue}
+          </p>
         ) : null}
       </div>
     </div>
