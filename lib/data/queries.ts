@@ -317,3 +317,160 @@ export async function getAdminStats() {
     signups
   };
 }
+
+// ── Marketer Analytics ──────────────────────────────────
+
+function startOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function endOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
+}
+
+export async function getMarketerStats() {
+  if (!(await ensureDb())) {
+    return null;
+  }
+
+  const now = new Date();
+  const thisMonthStart = startOfMonth(now);
+  const thisMonthEnd = endOfMonth(now);
+  const lastMonthStart = startOfMonth(
+    new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  );
+  const lastMonthEnd = endOfMonth(
+    new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  );
+
+  // Dynamic imports for models not already imported
+  const [
+    { Reservation },
+    { ClientSignup },
+    { NewsletterSubscriber },
+    { ContactMessage }
+  ] = await Promise.all([
+    import("@/models/Reservation"),
+    import("@/models/ClientSignup"),
+    import("@/models/NewsletterSubscriber"),
+    import("@/models/ContactMessage")
+  ]);
+
+  const [
+    courses,
+    publishedCourses,
+    reservations,
+    reservationsThisMonth,
+    reservationsLastMonth,
+    confirmedReservations,
+    pendingReservations,
+    signups,
+    signupsThisMonth,
+    subscribers,
+    subscribersThisMonth,
+    messages,
+    newMessages,
+    pendingFeedback,
+    topCoursesData
+  ] = await Promise.all([
+    Course.countDocuments({}),
+    Course.countDocuments({ published: true }),
+    Reservation.countDocuments({}),
+    Reservation.countDocuments({
+      createdAt: { $gte: thisMonthStart, $lte: thisMonthEnd }
+    }),
+    Reservation.countDocuments({
+      createdAt: { $gte: lastMonthStart, $lte: lastMonthEnd }
+    }),
+    Reservation.countDocuments({ status: "confirmed" }),
+    Reservation.countDocuments({ status: "pending" }),
+    ClientSignup.countDocuments({}),
+    ClientSignup.countDocuments({
+      createdAt: { $gte: thisMonthStart, $lte: thisMonthEnd }
+    }),
+    NewsletterSubscriber.countDocuments({}),
+    NewsletterSubscriber.countDocuments({
+      createdAt: { $gte: thisMonthStart, $lte: thisMonthEnd }
+    }),
+    ContactMessage.countDocuments({}),
+    ContactMessage.countDocuments({ status: "new" }),
+    Feedback.countDocuments({ approved: false }),
+    // Top courses by reservations (aggregation)
+    Reservation.aggregate([
+      { $group: { _id: "$courseId", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: "courses",
+          localField: "_id",
+          foreignField: "_id",
+          as: "course"
+        }
+      },
+      { $unwind: { path: "$course", preserveNullAndEmptyArrays: true } }
+    ])
+  ]);
+
+  // Reservations by month (last 6 months)
+  const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+  const reservationsByMonthRaw = await Reservation.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: sixMonthsAgo }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          year: { $year: "$createdAt" },
+          month: { $month: "$createdAt" }
+        },
+        count: { $sum: 1 }
+      }
+    },
+    { $sort: { "_id.year": 1, "_id.month": 1 } }
+  ]);
+
+  const monthNames = [
+    "Jan", "Fév", "Mar", "Avr", "Mai", "Jun",
+    "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"
+  ];
+
+  const reservationsByMonth = reservationsByMonthRaw.map((r) => ({
+    month: `${monthNames[r._id.month - 1]} ${r._id.year}`,
+    count: r.count
+  }));
+
+  // Format top courses
+  const topCoursesByReservations = topCoursesData
+    .filter((item) => item.course)
+    .map((item) => ({
+      courseId: String(item._id),
+      title: item.course?.title || "Formation supprimée",
+      count: item.count,
+      imageUrl: item.course?.imageUrl || "",
+      date: item.course?.date
+        ? new Date(item.course.date).toISOString().slice(0, 10)
+        : ""
+    }));
+
+  return {
+    courses,
+    publishedCourses,
+    reservations,
+    reservationsThisMonth,
+    reservationsLastMonth,
+    confirmedReservations,
+    pendingReservations,
+    signups,
+    signupsThisMonth,
+    subscribers,
+    subscribersThisMonth,
+    messages,
+    newMessages,
+    pendingFeedback,
+    topCoursesByReservations,
+    reservationsByMonth
+  };
+}

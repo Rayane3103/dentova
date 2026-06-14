@@ -1,6 +1,6 @@
 // Admin form card styling
 export const adminFormClassName =
-  "rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-5";
+  "rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm space-y-5";
 
 // Form label styling
 export const adminLabelClassName =
@@ -8,7 +8,7 @@ export const adminLabelClassName =
 
 // Content card styling
 export const adminCardClassName =
-  "rounded-xl border border-slate-200 bg-white shadow-sm";
+  "rounded-2xl border border-slate-200/80 bg-white shadow-sm";
 
 // Page section panel
 export const adminPanelClassName = "mt-5 space-y-3";

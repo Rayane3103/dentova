@@ -2,25 +2,30 @@ import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminTopBar } from "@/components/admin/AdminTopBar";
 import { AdminMobileDrawer } from "@/components/admin/AdminMobileDrawer";
 
+export type DashboardUser = {
+  name: string;
+  email: string;
+};
+
 export function AdminShell({
-  authenticated = false,
+  user,
   children
 }: {
-  authenticated?: boolean;
+  user?: DashboardUser | null;
   children: React.ReactNode;
 }) {
-  if (!authenticated) {
+  if (!user) {
     return <>{children}</>;
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div className="flex h-screen overflow-hidden bg-slate-50" suppressHydrationWarning>
       {/* Desktop Sidebar */}
       <AdminSidebar />
 
       {/* Main Content Area */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <AdminTopBar authenticated={authenticated} />
+        <AdminTopBar user={user} />
         <AdminMobileDrawer />
 
         <main className="flex-1 overflow-y-auto">

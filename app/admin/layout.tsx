@@ -10,5 +10,7 @@ export default async function AdminLayout({
 }>) {
   const session = await getAdminSession();
 
-  return <AdminShell authenticated={Boolean(session)}>{children}</AdminShell>;
+  const user = session ? { name: session.name, email: session.email } : null;
+
+  return <AdminShell user={user}>{children}</AdminShell>;
 }

@@ -16,20 +16,14 @@ export async function POST(request: Request) {
 
   if (!hasDatabaseConfig()) {
     return NextResponse.json(
-      {
-        error:
-          "MongoDB n'est pas configure. Ajoutez MONGODB_URI dans les variables d'environnement."
-      },
+      { error: "Service indisponible. Veuillez réessayer plus tard." },
       { status: 503 }
     );
   }
 
   if (!process.env.ADMIN_JWT_SECRET) {
     return NextResponse.json(
-      {
-        error:
-          "ADMIN_JWT_SECRET est manquant. Ajoutez une cle secrete dans les variables d'environnement."
-      },
+      { error: "Service indisponible. Veuillez réessayer plus tard." },
       { status: 503 }
     );
   }
@@ -38,10 +32,7 @@ export async function POST(request: Request) {
     await connectToDatabase();
   } catch {
     return NextResponse.json(
-      {
-        error:
-          "Impossible de se connecter a MongoDB. Verifiez MONGODB_URI sur Render."
-      },
+      { error: "Service indisponible. Veuillez réessayer plus tard." },
       { status: 503 }
     );
   }
@@ -50,10 +41,7 @@ export async function POST(request: Request) {
 
   if (!admin) {
     return NextResponse.json(
-      {
-        error:
-          "Identifiants invalides. Verifiez ADMIN_EMAIL et ADMIN_PASSWORD dans Render, puis redeployez."
-      },
+      { error: "Identifiants invalides." },
       { status: 401 }
     );
   }
@@ -64,6 +52,7 @@ export async function POST(request: Request) {
     {
       adminId: admin._id.toString(),
       email: admin.email,
+      name: admin.name ?? "Admin",
       role: "admin"
     },
     response

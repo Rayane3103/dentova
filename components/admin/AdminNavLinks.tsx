@@ -16,23 +16,26 @@ export function AdminNavLinks({
 }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [pendingSlug, setPendingSlug] = useState<string | null>(null);
 
   const toggleGroup = (label: string) => {
     setCollapsed((prev) => ({ ...prev, [label]: !prev[label] }));
   };
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-0.5">
       {adminNavGroups.map((group) => {
         const isCollapsed = collapsed[group.label] ?? false;
 
         return (
-          <div key={group.label} className="pb-1">
+          <div key={group.label} className="pb-1.5">
             <button
               aria-expanded={!isCollapsed}
               className={cn(
-                "flex w-full items-center gap-1.5 px-2 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400 transition-colors hover:text-slate-600",
-                variant === "drawer" && "text-slate-500"
+                "flex w-full items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] transition-colors",
+                variant === "sidebar"
+                  ? "text-dentova-lavender/60 hover:text-dentova-lavender"
+                  : "text-slate-400 hover:text-slate-600"
               )}
               onClick={() => toggleGroup(group.label)}
               type="button"
@@ -49,33 +52,58 @@ export function AdminNavLinks({
             {!isCollapsed && (
               <ul className="mt-0.5 space-y-0.5">
                 {group.items.map((item) => {
-                  const active = isAdminNavActive(pathname, item.href, item.exact);
+                  const active =
+                    pendingSlug === item.href ||
+                    isAdminNavActive(pathname, item.href, item.exact);
                   const Icon = item.icon;
 
                   return (
                     <li key={item.href}>
                       <Link
                         className={cn(
-                          "group flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-all",
-                          active
-                            ? "bg-dentova-navy/8 text-dentova-navy"
-                            : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                          "group flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all duration-150",
+                          variant === "sidebar"
+                            ? cn(
+                                active
+                                  ? "bg-white/15 text-white"
+                                  : "text-dentova-lavender/70 hover:bg-white/8 hover:text-white"
+                              )
+                            : cn(
+                                active
+                                  ? "bg-dentova-navy/8 text-dentova-navy"
+                                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                              )
                         )}
                         href={item.href}
-                        onClick={onNavigate}
+                        onClick={() => {
+                          setPendingSlug(item.href);
+                          // Clear pending after pathname catches up
+                          requestAnimationFrame(() =>
+                            requestAnimationFrame(() => setPendingSlug(null))
+                          );
+                          onNavigate?.();
+                        }}
                         prefetch={true}
                       >
                         <Icon
                           className={cn(
                             "h-4 w-4 shrink-0 transition-colors",
-                            active
-                              ? "text-dentova-navy"
-                              : "text-slate-400 group-hover:text-slate-500"
+                            variant === "sidebar"
+                              ? cn(
+                                  active
+                                    ? "text-dentova-teal-400"
+                                    : "text-dentova-lavender/50 group-hover:text-dentova-lavender/80"
+                                )
+                              : cn(
+                                  active
+                                    ? "text-dentova-navy"
+                                    : "text-slate-400 group-hover:text-slate-500"
+                                )
                           )}
                         />
                         <span className="flex-1 truncate">{item.label}</span>
                         {item.badge && (
-                          <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-dentova-magenta/10 px-1.5 text-[10px] font-bold text-dentova-magenta">
+                          <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-dentova-teal-400/20 px-1.5 text-[10px] font-bold text-dentova-teal-400">
                             {item.badge}
                           </span>
                         )}

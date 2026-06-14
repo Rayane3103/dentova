@@ -102,6 +102,7 @@ export function Navbar({
                     className="dentova-focus whitespace-nowrap rounded-full px-2.5 py-2 text-[13px] font-semibold text-dentova-navy-600 transition-all duration-200 hover:bg-white hover:text-dentova-teal-700 hover:shadow-sm xl:px-3 xl:text-sm"
                     href={item.href}
                     key={item.href}
+                    prefetch={true}
                   >
                     {item.label}
                   </Link>
@@ -123,10 +124,10 @@ export function Navbar({
 
               {authenticated ? (
                 <div className="hidden items-center gap-2 lg:flex">
-                  <Button asChild href="/admin" size="sm" variant="outline">
+                  <Button asChild href="/admin" prefetch={true} size="sm" variant="outline">
                     Tableau de bord
                   </Button>
-                  <form action="/api/admin/logout" method="post">
+                  <form action="/api/auth/logout" method="post">
                     <button
                       className={buttonClassName({ size: "sm", variant: "ghost" })}
                       type="submit"
@@ -138,7 +139,8 @@ export function Navbar({
               ) : (
                 <Link
                   className="dentova-focus hidden whitespace-nowrap rounded-full px-3 py-2 text-sm font-bold text-dentova-navy-600 transition hover:bg-dentova-navy-50 hover:text-dentova-teal-700 lg:block"
-                  href="/admin/login"
+                  href="/login"
+                  prefetch={true}
                 >
                   Connexion
                 </Link>
@@ -214,6 +216,7 @@ export function Navbar({
                         className="flex items-center justify-between rounded-xl px-4 py-3.5 text-base font-semibold text-dentova-navy-800 transition hover:bg-dentova-navy-50 hover:text-dentova-teal-700"
                         href={item.href}
                         onClick={() => setOpen(false)}
+                        prefetch={true}
                       >
                         {item.label}
                         <ArrowRight className="h-4 w-4 text-dentova-navy-300" />
@@ -258,11 +261,12 @@ export function Navbar({
                         className="w-full"
                         href="/admin"
                         onClick={() => setOpen(false)}
+                        prefetch={true}
                         variant="outline"
                       >
                         Tableau de bord
                       </Button>
-                      <form action="/api/admin/logout" method="post">
+                      <form action="/api/auth/logout" method="post">
                         <button
                           className={buttonClassName({
                             className: "w-full",
@@ -279,8 +283,9 @@ export function Navbar({
                     <Button
                       asChild
                       className="w-full"
-                      href="/admin/login"
+                      href="/login"
                       onClick={() => setOpen(false)}
+                      prefetch={true}
                       variant="outline"
                     >
                       Connexion

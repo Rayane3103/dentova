@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Darker_Grotesque, Inter } from "next/font/google";
+import { Suspense } from "react";
 import { Toaster } from "sonner";
+import { TopLoader } from "@/components/layout/TopLoader";
+import { PixelScripts } from "@/components/layout/PixelScripts";
 import "./globals.css";
 
 const inter = Inter({
@@ -40,9 +43,13 @@ export default function RootLayout({
       lang="fr"
       className={`${inter.variable} ${darkerGrotesque.variable}`}
     >
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased" suppressHydrationWarning>
+        <TopLoader />
         {children}
         <Toaster richColors position="top-right" />
+        <Suspense fallback={null}>
+          <PixelScripts />
+        </Suspense>
       </body>
     </html>
   );

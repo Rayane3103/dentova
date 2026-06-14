@@ -3,17 +3,18 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AdminNavLinks } from "@/components/admin/AdminNavLinks";
+import { ExternalLink } from "lucide-react";
 
 export function AdminSidebar() {
   return (
-    <aside className="hidden w-60 shrink-0 flex-col border-r border-slate-200 bg-white lg:flex">
+    <aside className="hidden w-60 shrink-0 flex-col bg-dentova-gradient lg:flex">
       {/* Logo */}
-      <div className="flex h-14 shrink-0 items-center gap-2.5 border-b border-slate-100 px-4">
+      <div className="flex h-16 shrink-0 items-center gap-3 border-b border-white/8 px-5">
         <Link
-          className="dentova-focus flex items-center gap-2.5 rounded-lg"
+          className="dentova-focus flex items-center gap-3 rounded-lg"
           href="/admin"
         >
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-dentova-navy">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
             <Image
               alt="Dentova"
               className="h-5 w-auto invert"
@@ -23,10 +24,10 @@ export function AdminSidebar() {
             />
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-bold leading-tight text-slate-900">
+            <p className="text-sm font-bold leading-tight text-white">
               Dentova
             </p>
-            <p className="text-[10px] font-medium leading-tight text-slate-400">
+            <p className="text-[10px] font-medium leading-tight text-dentova-teal-400">
               Console
             </p>
           </div>
@@ -34,21 +35,30 @@ export function AdminSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Navigation admin">
-        <AdminNavLinks />
+      <nav
+        className="flex-1 overflow-y-auto px-2 py-4"
+        aria-label="Navigation admin"
+      >
+        <AdminNavLinks variant="sidebar" />
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-slate-100 px-4 py-3">
+      <div className="border-t border-white/8 px-4 py-3">
         <Link
-          className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-slate-400 transition hover:text-slate-600"
+          className="group flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-dentova-lavender/50 transition hover:text-dentova-lavender/80"
           href="/"
           target="_blank"
         >
-          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-            <path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-          </svg>
+          <ExternalLink className="h-3.5 w-3.5" />
           Voir le site public
+        </Link>
+        <Link
+          className="group flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-dentova-lavender/50 transition hover:text-dentova-lavender/80"
+          href="/marketer"
+          target="_blank"
+        >
+          <ExternalLink className="h-3.5 w-3.5" />
+          Marketing
         </Link>
       </div>
     </aside>

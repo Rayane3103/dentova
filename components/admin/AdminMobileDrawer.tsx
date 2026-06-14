@@ -18,11 +18,11 @@ export function AdminMobileDrawer() {
 
   return (
     <>
-      {/* Trigger button — visible only on mobile */}
+      {/* Trigger — visible only on mobile */}
       <button
         aria-expanded={open}
         aria-label="Menu admin"
-        className="dentova-focus mb-4 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 lg:hidden"
+        className="dentova-focus mb-5 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 lg:hidden"
         onClick={() => setOpen(true)}
         type="button"
       >
@@ -35,19 +35,19 @@ export function AdminMobileDrawer() {
         <div className="fixed inset-0 z-40 lg:hidden">
           <button
             aria-label="Fermer le menu"
-            className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             onClick={() => setOpen(false)}
             type="button"
           />
-          <aside className="absolute inset-y-0 left-0 flex w-72 flex-col bg-white shadow-2xl">
-            {/* Drawer header */}
-            <div className="flex h-14 shrink-0 items-center justify-between border-b border-slate-100 px-4">
+          <aside className="absolute inset-y-0 left-0 flex w-72 flex-col bg-dentova-gradient shadow-2xl">
+            {/* Header */}
+            <div className="flex h-16 shrink-0 items-center justify-between border-b border-white/8 px-4">
               <Link
                 className="flex items-center gap-2.5"
                 href="/admin"
                 onClick={() => setOpen(false)}
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-dentova-navy">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/15">
                   <Image
                     alt="Dentova"
                     className="h-5 w-auto invert"
@@ -57,13 +57,17 @@ export function AdminMobileDrawer() {
                   />
                 </div>
                 <div>
-                  <p className="text-sm font-bold leading-tight text-slate-900">Dentova</p>
-                  <p className="text-[10px] font-medium leading-tight text-slate-400">Console</p>
+                  <p className="text-sm font-bold leading-tight text-white">
+                    Dentova
+                  </p>
+                  <p className="text-[10px] font-medium leading-tight text-dentova-teal-400">
+                    Console
+                  </p>
                 </div>
               </Link>
               <button
                 aria-label="Fermer"
-                className="dentova-focus rounded-lg p-2 text-slate-500 hover:bg-slate-100"
+                className="dentova-focus rounded-lg p-2 text-dentova-lavender/70 hover:bg-white/10 hover:text-white"
                 onClick={() => setOpen(false)}
                 type="button"
               >
@@ -71,9 +75,12 @@ export function AdminMobileDrawer() {
               </button>
             </div>
 
-            {/* Drawer nav */}
-            <div className="flex-1 overflow-y-auto px-3 py-4">
-              <AdminNavLinks onNavigate={() => setOpen(false)} variant="drawer" />
+            {/* Nav */}
+            <div className="flex-1 overflow-y-auto px-2 py-4">
+              <AdminNavLinks
+                onNavigate={() => setOpen(false)}
+                variant="drawer"
+              />
             </div>
           </aside>
         </div>

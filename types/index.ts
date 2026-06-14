@@ -81,3 +81,45 @@ export type BlogPost = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type PixelPlatform = "meta" | "tiktok";
+
+export type Pixel = {
+  id: string;
+  platform: PixelPlatform;
+  pixelId: string;
+  label?: string;
+  active: boolean;
+  verifiedAt?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MarketerStats = {
+  courses: number;
+  publishedCourses: number;
+  reservations: number;
+  reservationsThisMonth: number;
+  reservationsLastMonth: number;
+  confirmedReservations: number;
+  pendingReservations: number;
+  signups: number;
+  signupsThisMonth: number;
+  subscribers: number;
+  subscribersThisMonth: number;
+  messages: number;
+  newMessages: number;
+  pendingFeedback: number;
+  topCoursesByReservations: {
+    courseId: string;
+    title: string;
+    count: number;
+    imageUrl: string;
+    date: string;
+  }[];
+  reservationsByMonth: {
+    month: string;
+    count: number;
+  }[];
+};

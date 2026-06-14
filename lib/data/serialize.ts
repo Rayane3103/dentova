@@ -107,6 +107,26 @@ function formatDateTime(value: unknown) {
   return new Date().toISOString();
 }
 
+export function serializePixel(doc: MongoDoc) {
+  const formatDate = (value: unknown) => {
+    if (value instanceof Date) return value.toISOString();
+    if (typeof value === "string") return value;
+    return null;
+  };
+
+  return {
+    id: String(doc._id),
+    platform: String(doc.platform) as "meta" | "tiktok",
+    pixelId: String(doc.pixelId),
+    label: doc.label ? String(doc.label) : undefined,
+    active: Boolean(doc.active),
+    verifiedAt: doc.verifiedAt ? formatDate(doc.verifiedAt) : undefined,
+    notes: doc.notes ? String(doc.notes) : undefined,
+    createdAt: formatDate(doc.createdAt) ?? new Date().toISOString(),
+    updatedAt: formatDate(doc.updatedAt) ?? new Date().toISOString()
+  };
+}
+
 export function serializePost(doc: MongoDoc): BlogPost {
   const likes = Array.isArray(doc.likes)
     ? doc.likes.map((id: unknown) => String(id))

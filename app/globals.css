@@ -112,12 +112,54 @@ select {
   animation: admin-loading-enter 200ms ease-out;
 }
 
+@keyframes top-loader {
+  0% {
+    transform: translateX(-100%);
+  }
+  30% {
+    transform: translateX(-50%);
+  }
+  60% {
+    transform: translateX(-15%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.animate-top-loader {
+  animation: top-loader 1.2s ease-out forwards;
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-page-fade-in {
+  animation: page-fade-in 200ms ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .dentova-marquee {
     animation: none;
   }
 
   .admin-loading-enter {
+    animation: none;
+  }
+
+  .animate-top-loader {
+    animation: none;
+  }
+
+  .animate-page-fade-in {
     animation: none;
   }
 }
