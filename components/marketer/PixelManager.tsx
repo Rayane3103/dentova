@@ -634,7 +634,7 @@ ttq.load('${pixel.pixelId}');ttq.page();}(window,document,'ttq');
           />
 
           {/* Dialog */}
-          <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+          <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
             <div className="mb-5 flex items-center justify-between">
               <h2 className="text-lg font-bold text-slate-900 font-display">
                 {editingId
