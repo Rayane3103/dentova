@@ -5,6 +5,8 @@ import { formatPrice, formatShortDate } from "@/lib/format";
 import type { Course } from "@/types";
 
 export function CourseCard({ course }: { course: Course }) {
+  const isCycle = course.courseType === "cycle";
+
   return (
     <Link
       className="group relative flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-dentova-navy-950 shadow-xl transition-all duration-500 hover:border-dentova-teal-400/40"
@@ -19,16 +21,23 @@ export function CourseCard({ course }: { course: Course }) {
           src={course.imageUrl}
         />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[10%] bg-gradient-to-t from-dentova-navy-950/50 to-transparent" />
-        <span className="absolute left-4 top-4 z-10 rounded-md bg-white/25 px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-white backdrop-blur-sm">
-          {course.category.name}
-        </span>
+        <div className="absolute left-4 top-4 z-10 flex flex-wrap gap-2">
+          <span className="rounded-md bg-white/25 px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-white backdrop-blur-sm">
+            {course.category.name}
+          </span>
+          <span className="rounded-md bg-dentova-teal-500/90 px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-dentova-navy-950">
+            {isCycle ? "Cycle" : "Formation"}
+          </span>
+        </div>
       </div>
 
       <div className="flex flex-1 flex-col p-5">
         <div className="mb-3 flex items-center justify-between gap-3 text-[11px]">
           <span className="flex items-center gap-1.5 font-semibold text-dentova-navy-300">
             <CalendarDays className="h-3 w-3 shrink-0 text-dentova-teal-400" />
-            {formatShortDate(course.date)}
+            {isCycle && course.cycleDates.length > 1
+              ? `${course.cycleDates.length} dates`
+              : formatShortDate(course.date)}
           </span>
           <span className="flex items-center gap-1.5 font-semibold text-dentova-navy-300">
             <MapPin className="h-3 w-3 shrink-0 text-dentova-teal-400" />

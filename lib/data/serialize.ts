@@ -1,4 +1,13 @@
-import type { BlogPost, Category, Course, FAQItem, Mentor, Testimonial, WorkshopImage } from "@/types";
+import type {
+  BlogPost,
+  Category,
+  Course,
+  FAQItem,
+  Mentor,
+  Sponsor,
+  Testimonial,
+  WorkshopImage
+} from "@/types";
 
 type MongoDoc = Record<string, unknown>;
 
@@ -20,13 +29,24 @@ function formatDate(value: unknown) {
   return String(value).slice(0, 10);
 }
 
+function formatDateList(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(Boolean).map((date) => formatDate(date));
+}
+
 export function serializeCourse(doc: MongoDoc, category: Category): Course {
   const description = String(doc.description);
+  const courseType = doc.courseType === "cycle" ? "cycle" : "formation";
 
   return {
     id: String(doc._id),
     title: String(doc.title),
     slug: String(doc.slug),
+    courseType,
+    cycleDates: courseType === "cycle" ? formatDateList(doc.cycleDates) : [],
     subtitle: doc.subtitle ? String(doc.subtitle) : undefined,
     description,
     excerpt: doc.excerpt ? String(doc.excerpt) : description.slice(0, 160),
@@ -43,7 +63,8 @@ export function serializeCourse(doc: MongoDoc, category: Category): Course {
     featured: Boolean(doc.featured),
     showOnHomepage: Boolean(doc.showOnHomepage),
     published: Boolean(doc.published),
-    maxSeats: doc.maxSeats ? Number(doc.maxSeats) : undefined
+    maxSeats: doc.maxSeats ? Number(doc.maxSeats) : undefined,
+    youtubeUrl: doc.youtubeUrl ? String(doc.youtubeUrl) : undefined
   };
 }
 
@@ -54,6 +75,18 @@ export function serializeWorkshopImage(doc: MongoDoc): WorkshopImage {
     description: doc.description ? String(doc.description) : undefined,
     imageUrl: String(doc.imageUrl),
     imagePublicId: doc.imagePublicId ? String(doc.imagePublicId) : undefined,
+    order: Number(doc.order ?? 0),
+    active: Boolean(doc.active)
+  };
+}
+
+export function serializeSponsor(doc: MongoDoc): Sponsor {
+  return {
+    id: String(doc._id),
+    name: String(doc.name),
+    imageUrl: String(doc.imageUrl),
+    imagePublicId: doc.imagePublicId ? String(doc.imagePublicId) : undefined,
+    websiteUrl: doc.websiteUrl ? String(doc.websiteUrl) : undefined,
     order: Number(doc.order ?? 0),
     active: Boolean(doc.active)
   };

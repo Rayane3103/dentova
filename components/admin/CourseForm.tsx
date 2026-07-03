@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader } from "lucide-react";
+import { Loader, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -16,7 +16,7 @@ import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { siteConfig } from "@/lib/constants";
 import { courseSchema } from "@/lib/validators/course";
-import type { Category } from "@/types";
+import type { Category, Mentor } from "@/types";
 
 type CourseFormValues = z.infer<typeof courseSchema>;
 
@@ -25,9 +25,33 @@ type CourseFormProps = {
   initialValues?: Partial<CourseFormValues>;
 };
 
+function toDateInputValue(value: unknown) {
+  if (!value) {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+
+  return String(value).slice(0, 10);
+}
+
+function toDateInputValues(value: unknown, fallbackDate: unknown) {
+  if (Array.isArray(value) && value.length > 0) {
+    return value.map((date) => toDateInputValue(date));
+  }
+
+  return [toDateInputValue(fallbackDate), ""];
+}
+
 export function CourseForm({ courseId, initialValues }: CourseFormProps) {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
+  const [mentors, setMentors] = useState<Mentor[]>([]);
+  const [cycleDateValues, setCycleDateValues] = useState<string[]>(() =>
+    toDateInputValues(initialValues?.cycleDates, initialValues?.date)
+  );
 
   const {
     formState: { errors, isSubmitting },
@@ -40,7 +64,12 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
       categoryId: initialValues?.categoryId || "",
       contactEmail: initialValues?.contactEmail || siteConfig.email,
       contactPhone: initialValues?.contactPhone || siteConfig.phone,
-      date: initialValues?.date || new Date(),
+      courseType: initialValues?.courseType || "formation",
+      cycleDates: toDateInputValues(
+        initialValues?.cycleDates,
+        initialValues?.date
+      ) as unknown as Date[],
+      date: toDateInputValue(initialValues?.date) as unknown as Date,
       description: initialValues?.description || "",
       excerpt: initialValues?.excerpt || "",
       featured: initialValues?.featured ?? false,
@@ -54,27 +83,90 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
       showOnHomepage: initialValues?.showOnHomepage ?? true,
       subtitle: initialValues?.subtitle || "",
       time: initialValues?.time || "10:00",
-      title: initialValues?.title || ""
+      title: initialValues?.title || "",
+      youtubeUrl: initialValues?.youtubeUrl || ""
     },
     resolver: zodResolver(courseSchema)
   });
 
   const imageUrl = watch("imageUrl");
   const imagePublicId = watch("imagePublicId");
+  const instructor = watch("instructor");
+  const courseType = watch("courseType");
+  const isCycle = courseType === "cycle";
+  const selectedMentorValue = mentors.some((mentor) => mentor.name === instructor)
+    ? instructor
+    : instructor
+      ? "custom"
+      : "";
 
   useEffect(() => {
-    void fetch("/api/admin/categories")
-      .then((response) => response.json())
-      .then((data: { categories: Category[] }) => setCategories(data.categories));
+    void Promise.all([
+      fetch("/api/admin/categories").then((response) => response.json()),
+      fetch("/api/admin/mentors").then((response) => response.json())
+    ]).then(
+      ([categoryData, mentorData]: [
+        { categories?: Category[] },
+        { mentors?: Mentor[] }
+      ]) => {
+        setCategories(categoryData.categories ?? []);
+        setMentors(mentorData.mentors ?? []);
+      }
+    );
   }, []);
 
+  const syncCycleDates = (dates: string[]) => {
+    const nextDates = dates.length >= 2 ? dates : [...dates, ""].slice(0, 2);
+    const filledDates = nextDates.filter(Boolean);
+
+    setCycleDateValues(nextDates);
+    setValue("cycleDates", filledDates as unknown as Date[], {
+      shouldDirty: true,
+      shouldValidate: true
+    });
+
+    if (filledDates[0]) {
+      setValue("date", filledDates[0] as unknown as Date, {
+        shouldDirty: true,
+        shouldValidate: true
+      });
+    }
+  };
+
+  const setCourseType = (checked: boolean) => {
+    const nextType = checked ? "cycle" : "formation";
+
+    setValue("courseType", nextType, {
+      shouldDirty: true,
+      shouldValidate: true
+    });
+
+    if (checked) {
+      syncCycleDates(cycleDateValues);
+      return;
+    }
+
+    setValue("cycleDates", [], { shouldDirty: true, shouldValidate: true });
+  };
+
   const onSubmit = async (values: CourseFormValues) => {
+    const filledCycleDates = cycleDateValues.filter(Boolean);
+    const isCycleSubmission = values.courseType === "cycle";
+    const payload = {
+      ...values,
+      cycleDates: isCycleSubmission ? filledCycleDates : [],
+      date: isCycleSubmission
+        ? filledCycleDates[0]
+        : toDateInputValue(values.date),
+      maxSeats: Number.isFinite(values.maxSeats) ? values.maxSeats : undefined
+    };
+
     const response = await fetch(
       courseId ? `/api/admin/courses/${courseId}` : "/api/admin/courses",
       {
         method: courseId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values)
+        body: JSON.stringify(payload)
       }
     );
 
@@ -112,6 +204,17 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
         <Textarea className="min-h-20" placeholder="Resume court pour la carte" size="sm" {...register("excerpt")} />
       </label>
 
+      <label className="block">
+        <span className={adminLabelClassName}>Lien video YouTube</span>
+        <Input
+          placeholder="https://www.youtube.com/watch?v=..."
+          size="sm"
+          type="url"
+          {...register("youtubeUrl")}
+        />
+        {errors.youtubeUrl ? <p className="mt-1 text-sm text-red-600">{errors.youtubeUrl.message}</p> : null}
+      </label>
+
       <div>
         <span className={adminLabelClassName}>Image *</span>
         <ImageUploadField
@@ -137,17 +240,107 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
           </Select>
           {errors.categoryId ? <p className="mt-1 text-sm text-red-600">{errors.categoryId.message}</p> : null}
         </label>
-        <label className="block">
+        <div className="block">
           <span className={adminLabelClassName}>Formateur *</span>
-          <Input placeholder="Nom du formateur" size="sm" {...register("instructor")} />
+          <div className="space-y-2">
+            <Select
+              onChange={(event) => {
+                const value = event.target.value;
+                setValue("instructor", value === "custom" ? "" : value, {
+                  shouldDirty: true,
+                  shouldValidate: true
+                });
+              }}
+              size="sm"
+              value={selectedMentorValue}
+            >
+              <option value="">Selectionner un mentor</option>
+              {mentors.map((mentor) => (
+                <option key={mentor.id} value={mentor.name}>
+                  {mentor.name}
+                  {mentor.title ? ` - ${mentor.title}` : ""}
+                </option>
+              ))}
+              <option value="custom">Nouveau formateur</option>
+            </Select>
+            <Input
+              placeholder="Nom du formateur"
+              size="sm"
+              {...register("instructor")}
+            />
+          </div>
+          {errors.instructor ? <p className="mt-1 text-sm text-red-600">{errors.instructor.message}</p> : null}
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-4">
+        <label className="flex items-center gap-2.5 text-sm font-medium text-slate-700">
+          <Checkbox
+            checked={isCycle}
+            onChange={(event) => setCourseType(event.target.checked)}
+          />{" "}
+          Cycle de formation
         </label>
+        <p className="mt-2 text-xs leading-relaxed text-slate-500">
+          Cochez cette option pour ajouter plusieurs dates. Un cycle doit avoir
+          au moins deux dates.
+        </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className={adminLabelClassName}>Date *</span>
-          <Input size="sm" type="date" {...register("date", { valueAsDate: true })} />
-        </label>
+        {isCycle ? (
+          <div className="space-y-3 sm:col-span-2">
+            <div className="flex items-center justify-between gap-3">
+              <span className={adminLabelClassName}>Dates du cycle *</span>
+              <Button
+                onClick={() => syncCycleDates([...cycleDateValues, ""])}
+                size="sm"
+                type="button"
+                variant="secondary"
+              >
+                <Plus className="h-4 w-4" />
+                Ajouter une date
+              </Button>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {cycleDateValues.map((dateValue, index) => (
+                <div className="flex items-center gap-2" key={index}>
+                  <Input
+                    aria-label={`Date ${index + 1} du cycle`}
+                    min={index > 0 ? cycleDateValues[index - 1] || undefined : undefined}
+                    onChange={(event) => {
+                      const nextDates = [...cycleDateValues];
+                      nextDates[index] = event.target.value;
+                      syncCycleDates(nextDates);
+                    }}
+                    size="sm"
+                    type="date"
+                    value={dateValue}
+                  />
+                  <button
+                    aria-label={`Supprimer la date ${index + 1}`}
+                    className="dentova-focus inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+                    disabled={cycleDateValues.length <= 2}
+                    onClick={() =>
+                      syncCycleDates(cycleDateValues.filter((_, itemIndex) => itemIndex !== index))
+                    }
+                    type="button"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            {errors.cycleDates ? (
+              <p className="text-sm text-red-600">{errors.cycleDates.message}</p>
+            ) : null}
+          </div>
+        ) : (
+          <label className="block">
+            <span className={adminLabelClassName}>Date *</span>
+            <Input size="sm" type="date" {...register("date", { valueAsDate: true })} />
+          </label>
+        )}
         <label className="block">
           <span className={adminLabelClassName}>Heure</span>
           <Input size="sm" type="time" {...register("time")} />
@@ -178,7 +371,14 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
 
       <label className="block">
         <span className={adminLabelClassName}>Places max</span>
-        <Input min="1" size="sm" type="number" {...register("maxSeats", { valueAsNumber: true })} />
+        <Input
+          min="1"
+          size="sm"
+          type="number"
+          {...register("maxSeats", {
+            setValueAs: (value) => (value === "" ? undefined : Number(value))
+          })}
+        />
       </label>
 
       <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-4">

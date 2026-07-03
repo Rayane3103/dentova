@@ -5,11 +5,13 @@ import { CoursesSection } from "@/components/public/CoursesSection";
 import { FAQSection } from "@/components/public/FAQSection";
 import { HeroSection } from "@/components/public/HeroSection";
 import { ImageGallery } from "@/components/public/ImageGallery";
+import { SponsorsBar } from "@/components/public/SponsorsBar";
 import { TestimonialsSection } from "@/components/public/TestimonialsSection";
 
 import { getAdminSession } from "@/lib/auth/cookies";
 import {
   getActiveWorkshopImages,
+  getActiveSponsors,
   getCategories,
   getPublishedCourses,
   getPublishedFaqs,
@@ -21,7 +23,17 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [session, courses, categories, testimonials, faqs, gallery, posts, upcomingCourses] =
+  const [
+    session,
+    courses,
+    categories,
+    testimonials,
+    faqs,
+    gallery,
+    sponsors,
+    posts,
+    upcomingCourses
+  ] =
     await Promise.all([
       getAdminSession(),
       getPublishedCourses({ homepageOnly: true }),
@@ -29,6 +41,7 @@ export default async function HomePage() {
       getPublishedTestimonials(),
       getPublishedFaqs(),
       getActiveWorkshopImages(),
+      getActiveSponsors(),
       getPublishedPosts({ limit: 3 }),
       getUpcomingCourses(3)
     ]);
@@ -42,6 +55,7 @@ export default async function HomePage() {
       <TestimonialsSection testimonials={testimonials} />
       <FAQSection faqs={faqs} />
       <ContactSection />
+      <SponsorsBar sponsors={sponsors} />
       {gallery.length > 0 ? <ImageGallery images={gallery} /> : null}
     </main>
   );

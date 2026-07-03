@@ -5,6 +5,7 @@ import {
   serializeFAQ,
   serializeMentor,
   serializePost,
+  serializeSponsor,
   serializeTestimonial,
   serializeWorkshopImage
 } from "@/lib/data/serialize";
@@ -14,6 +15,7 @@ import { FAQ } from "@/models/FAQ";
 import { Feedback } from "@/models/Feedback";
 import { Mentor } from "@/models/Mentor";
 import { Post } from "@/models/Post";
+import { Sponsor } from "@/models/Sponsor";
 import { WorkshopImage } from "@/models/WorkshopImage";
 import type { BlogPost, Category as CategoryType, Course as CourseType } from "@/types";
 
@@ -163,6 +165,15 @@ export async function getActiveWorkshopImages() {
   return images.map((doc) => serializeWorkshopImage(doc as Record<string, unknown>));
 }
 
+export async function getActiveSponsors() {
+  if (!(await ensureDb())) {
+    return [];
+  }
+
+  const sponsors = await Sponsor.find({ active: true }).sort({ order: 1, name: 1 }).lean();
+  return sponsors.map((doc) => serializeSponsor(doc as Record<string, unknown>));
+}
+
 export async function getPublishedFaqs() {
   if (!(await ensureDb())) {
     return [];
@@ -273,6 +284,7 @@ export async function getAdminStats() {
     courses,
     categories,
     gallery,
+    sponsors,
     faqs,
     mentors,
     posts,
@@ -285,6 +297,7 @@ export async function getAdminStats() {
     Course.countDocuments({}),
     Category.countDocuments({}),
     WorkshopImage.countDocuments({}),
+    Sponsor.countDocuments({}),
     FAQ.countDocuments({}),
     Mentor.countDocuments({}),
     Post.countDocuments({}),
@@ -307,6 +320,7 @@ export async function getAdminStats() {
     courses,
     categories,
     gallery,
+    sponsors,
     faqs,
     mentors,
     posts,

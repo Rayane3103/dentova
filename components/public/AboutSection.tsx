@@ -92,13 +92,11 @@ export function AboutSection() {
 
             {/* Main paragraph */}
             <p className="mb-8 text-base leading-relaxed text-dentova-navy-500 sm:text-lg">
-              Dentova est née de la passion de dentistes algériens déterminés à
-              apporter des solutions innovantes en matière de formation et de
-              développement professionnel dans le domaine dentaire. Nous
-              organisons des événements de grande envergure, tels que des
-              congrès, des séminaires et des ateliers, afin de répondre aux
-              besoins de tous les praticiens, des plus débutants aux plus
-              expérimentés.
+              Dentova est une société spécialisée dans l’organisation de
+              formations continues en médecine dentaire. Nous concevons et
+              organisons des formations, masterclasses et cycles animés par des
+              experts reconnus, en mettant l’accent sur la qualité scientifique,
+              la pratique clinique et une organisation professionnelle.
             </p>
 
             {/* Feature cards */}

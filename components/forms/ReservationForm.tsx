@@ -12,17 +12,23 @@ import {
   ShieldCheck,
   User
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
-import { SuccessDialog } from "@/components/ui/SuccessDialog";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { reservationSchema } from "@/lib/validators/reservation";
 import type { Course } from "@/types";
 
 type ReservationValues = z.infer<typeof reservationSchema>;
+type ReservationResponse = {
+  reservation?: {
+    _id?: string;
+    id?: string;
+  };
+};
 
 const emptyValues = (courseId: string): ReservationValues => ({
   courseId,
@@ -35,7 +41,8 @@ const emptyValues = (courseId: string): ReservationValues => ({
 });
 
 export function ReservationForm({ course }: { course: Course }) {
-  const [showSuccess, setShowSuccess] = useState(false);
+  const router = useRouter();
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const {
     formState: { errors, isSubmitting },
     handleSubmit,
@@ -58,16 +65,20 @@ export function ReservationForm({ course }: { course: Course }) {
       return;
     }
 
+    const data = (await response.json().catch(() => null)) as ReservationResponse | null;
+    const reservationId = data?.reservation?._id || data?.reservation?.id;
+    const query = reservationId ? `?reservation=${encodeURIComponent(reservationId)}` : "";
+
     reset(emptyValues(course.id));
-    setShowSuccess(true);
+    setIsRedirecting(true);
+    router.push(`/courses/${course.slug}/thank-you${query}`);
   };
 
   return (
-    <>
-      <form
-        className="rounded-2xl border border-dentova-ash bg-white p-6 shadow-card"
-        onSubmit={handleSubmit(onSubmit)}
-      >
+    <form
+      className="rounded-2xl border border-dentova-ash bg-white p-6 shadow-card"
+      onSubmit={handleSubmit(onSubmit)}
+    >
         <div className="mb-5">
           <h2 className="text-lg font-extrabold text-dentova-graphite">
             Réservez votre place
@@ -148,10 +159,10 @@ export function ReservationForm({ course }: { course: Course }) {
 
         <button
           className="dentova-focus mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-dentova-graphite px-5 py-3 text-sm font-bold text-white shadow-lg transition hover:bg-dentova-graphite/90 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isRedirecting}
           type="submit"
         >
-          {isSubmitting ? (
+          {isSubmitting || isRedirecting ? (
             <>
               <Loader className="h-4 w-4 animate-spin" />
               Envoi en cours…
@@ -168,16 +179,7 @@ export function ReservationForm({ course }: { course: Course }) {
           <ShieldCheck className="h-3.5 w-3.5 text-dentova-teal" />
           Vos informations sont sécurisées et ne seront jamais partagées.
         </p>
-      </form>
-
-      {showSuccess ? (
-        <SuccessDialog
-          description="Votre demande de réservation a bien été envoyée. Notre équipe vous contactera très bientôt pour confirmer votre place."
-          onClose={() => setShowSuccess(false)}
-          title="Inscription envoyée !"
-        />
-      ) : null}
-    </>
+    </form>
   );
 }
 

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getYouTubeVideoId } from "@/lib/youtube";
 
 const imageUrlSchema = z
   .string()
@@ -8,10 +9,19 @@ const imageUrlSchema = z
     "Image URL must be a valid URL or site path."
   );
 
-export const courseSchema = z.object({
+const courseTypeSchema = z.enum(["formation", "cycle"]);
+
+const youtubeUrlSchema = z.string().trim().optional().refine(
+  (value) => !value || Boolean(getYouTubeVideoId(value)),
+  "YouTube link must be a valid YouTube video URL."
+);
+
+const baseCourseSchema = z.object({
   categoryId: z.string().min(1, "Category is required."),
   contactEmail: z.string().email("Contact email is invalid."),
   contactPhone: z.string().min(5, "Contact phone is required."),
+  courseType: courseTypeSchema.default("formation"),
+  cycleDates: z.array(z.coerce.date()).optional(),
   date: z.coerce.date(),
   description: z.string().min(10, "Description is required."),
   excerpt: z.string().optional(),
@@ -26,5 +36,23 @@ export const courseSchema = z.object({
   showOnHomepage: z.coerce.boolean().default(true),
   subtitle: z.string().optional(),
   time: z.string().optional(),
-  title: z.string().min(2, "Title is required.")
+  title: z.string().min(2, "Title is required."),
+  youtubeUrl: youtubeUrlSchema
 });
+
+function validateCycleDates(
+  data: { courseType?: "formation" | "cycle"; cycleDates?: Date[] },
+  ctx: z.RefinementCtx
+) {
+  if (data.courseType === "cycle" && (!data.cycleDates || data.cycleDates.length < 2)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "A cycle requires at least two dates.",
+      path: ["cycleDates"]
+    });
+  }
+}
+
+export const courseSchema = baseCourseSchema.superRefine(validateCycleDates);
+
+export const courseUpdateSchema = baseCourseSchema.partial().superRefine(validateCycleDates);

@@ -3,321 +3,390 @@
 import {
   ArrowRight,
   ArrowUpRight,
-  Award,
-  BookOpen,
-  Calendar,
-  Flame,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
   MapPin,
-  Star,
-  Users
+  Sparkles
 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { MotionCounter } from "@/components/public/MotionCounter";
-import { ParallaxBlob } from "@/components/public/ParallaxBlob";
+import { formatPrice, formatShortDate } from "@/lib/format";
 import type { Course } from "@/types";
 
-const HERO_BACKGROUND = "/images/assets/hero-academy.webp";
+const HOME_SLIDE_MS = 7000;
+const COURSE_SLIDE_MS = 3000;
 
-const stats = [
-  { value: 3, suffix: "+ Ans", label: "D'Excellence Active", icon: Award },
-  { value: 1500, suffix: "+", label: "Praticiens Formes", icon: Users },
-  { value: 35, suffix: "+", label: "Sessions Realisees", icon: BookOpen },
-  { value: 99, suffix: "%", label: "Avis Excellents", icon: Star }
+const homeStats = [
+  { value: 3, prefix: "+", suffix: " ans", label: "D'excellence active" },
+  { value: 500, prefix: "+", suffix: "", label: "Praticiens formes" },
+  { value: 20, prefix: "+", suffix: "", label: "Sessions realisees" }
 ];
 
 const MONTHS_FR = [
-  "Janvier", "Fevrier", "Mars", "Avril", "Mai", "Juin",
-  "Juillet", "Aout", "Septembre", "Octobre", "Novembre", "Decembre"
+  "Janvier",
+  "Fevrier",
+  "Mars",
+  "Avril",
+  "Mai",
+  "Juin",
+  "Juillet",
+  "Aout",
+  "Septembre",
+  "Octobre",
+  "Novembre",
+  "Decembre"
 ];
 
 function formatFrenchDate(dateStr: string): string {
-  const [y, m, d] = dateStr.split("-").map(Number);
+  const [y, m, d] = dateStr.slice(0, 10).split("-").map(Number);
+
+  if (!y || !m || !d) {
+    return dateStr;
+  }
+
   return `${d} ${MONTHS_FR[m - 1]} ${y}`;
 }
 
-function getDaysUntil(dateStr: string): number {
-  const target = new Date(dateStr);
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  return Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+function HeroCoursePreview({ course }: { course: Course }) {
+  const isCycle = course.courseType === "cycle";
+
+  return (
+    <Link
+      className="group grid min-h-[430px] overflow-hidden transition-all duration-500 md:grid-cols-[1fr_0.88fr]"
+      href={`/courses/${course.slug}`}
+    >
+      <div className="relative flex min-h-[250px] items-center justify-center overflow-hidden">
+        {course.imageUrl ? (
+          <>
+            <Image
+              alt=""
+              aria-hidden="true"
+              className="object-cover opacity-20 blur-2xl scale-110"
+              fill
+              sizes="(min-width: 1024px) 460px, 100vw"
+              src={course.imageUrl}
+            />
+            <Image
+              alt={course.title}
+              className="object-contain p-2 drop-shadow-2xl transition-transform duration-700 ease-out group-hover:scale-[1.02] sm:p-3"
+              fill
+              sizes="(min-width: 1024px) 460px, 100vw"
+              src={course.imageUrl}
+            />
+          </>
+        ) : null}
+
+        <div className="absolute left-4 top-4 z-10 flex flex-wrap gap-2">
+          <span className="rounded-md bg-dentova-navy-950/70 px-3 py-1 text-[9px] font-bold uppercase text-white backdrop-blur-sm">
+            {course.category.name}
+          </span>
+          <span className="rounded-md bg-dentova-teal-500/90 px-3 py-1 text-[9px] font-bold uppercase text-dentova-navy-950">
+            {isCycle ? "Cycle" : "Formation"}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-col justify-center gap-6 p-5 sm:p-6">
+        <div>
+          <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-semibold text-dentova-navy-300">
+            <span className="flex items-center gap-1.5">
+              <CalendarDays className="h-3.5 w-3.5 shrink-0 text-dentova-teal-400" />
+              {isCycle && course.cycleDates.length > 1
+                ? `${course.cycleDates.length} dates`
+                : formatShortDate(course.date)}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-dentova-teal-400" />
+              {course.location}
+            </span>
+          </div>
+
+          <h2 className="font-display text-3xl font-black leading-none text-white transition-colors group-hover:text-dentova-teal-300 sm:text-4xl">
+            {course.title}
+          </h2>
+
+          <p className="mt-4 line-clamp-6 text-sm leading-7 text-dentova-navy-300">
+            {course.excerpt || course.description}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-5">
+          <span className="font-display text-2xl font-black text-dentova-teal-400">
+            {formatPrice(course.price)}
+          </span>
+          <span className="flex items-center gap-1.5 rounded-lg bg-dentova-magenta px-4 py-2 text-xs font-bold text-white transition-all group-hover:bg-dentova-violet">
+            Voir les details
+            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
 }
 
-function isUrgent(days: number): boolean {
-  return days >= 0 && days <= 30;
-}
-
-function isPast(days: number): boolean {
-  return days < 0;
-}
+type HeroSlide =
+  | {
+      kind: "home";
+      id: "home";
+      label: string;
+      title: string;
+      subtitle: string;
+      href: string;
+      eyebrow: string;
+    }
+  | {
+      kind: "course";
+      id: string;
+      label: string;
+      title: string;
+      subtitle: string;
+      href: string;
+      eyebrow: string;
+      course: Course;
+    };
 
 export function HeroSection({
   upcomingCourses = []
 }: {
   upcomingCourses?: Course[];
 }) {
-  const parsedUpcoming = useMemo(
-    () =>
-      upcomingCourses.filter(
-        (c) => !isPast(getDaysUntil(c.date))
-      ),
+  const slides = useMemo<HeroSlide[]>(
+    () => [
+      {
+        kind: "home",
+        id: "home",
+        label: "Accueil",
+        title: "Dentova Academy",
+        subtitle:
+          "Formations dentaires premium en Algerie, pensees pour transformer la pratique clinique avec des mentors experts, des protocoles concrets et des ateliers immersifs.",
+        href: "/#courses",
+        eyebrow: "Academie d'excellence clinique"
+      },
+      ...upcomingCourses.slice(0, 5).map((course) => ({
+        kind: "course" as const,
+        id: course.id,
+        label: course.category?.name ?? "Formation",
+        title: course.title,
+        subtitle:
+          course.excerpt ||
+          course.subtitle ||
+          "Une session pratique pour progresser avec methode, precision et accompagnement expert.",
+        href: `/courses/${course.slug}`,
+        eyebrow: `${formatFrenchDate(course.date)} - ${course.location}`,
+        course
+      }))
+    ],
     [upcomingCourses]
   );
 
+  const [activeIndex, setActiveIndex] = useState(0);
+  const activeSlide = slides[activeIndex] ?? slides[0];
+
+  useEffect(() => {
+    if (slides.length <= 1) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setActiveIndex((index) => (index + 1) % slides.length);
+    }, activeSlide.kind === "home" ? HOME_SLIDE_MS : COURSE_SLIDE_MS);
+
+    return () => window.clearTimeout(timeout);
+  }, [activeSlide.kind, activeIndex, slides.length]);
+
+  useEffect(() => {
+    if (activeIndex > slides.length - 1) {
+      setActiveIndex(0);
+    }
+  }, [activeIndex, slides.length]);
+
+  function goToPrevious() {
+    setActiveIndex((index) => (index - 1 + slides.length) % slides.length);
+  }
+
+  function goToNext() {
+    setActiveIndex((index) => (index + 1) % slides.length);
+  }
+
   return (
     <section
-      className="relative -mt-[76px] flex min-h-[90vh] flex-col justify-center overflow-hidden px-6 pb-20 pt-[calc(76px+3rem)] text-white sm:-mt-[80px] sm:pt-[calc(80px+3rem)] lg:-mt-[116px] lg:pt-[calc(116px+3rem)]"
+      className="relative -mt-[76px] min-h-[90vh] overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(115,203,213,0.28),transparent_34%),linear-gradient(135deg,#10103a_0%,#181453_45%,#2d1247_100%)] px-6 pb-12 pt-[calc(76px+2.5rem)] text-white sm:-mt-[80px] sm:pt-[calc(80px+3rem)] lg:-mt-[116px] lg:pt-[calc(116px+4rem)]"
       id="hero"
     >
-      <Image
-        alt="Session de formation Dentova"
-        className="object-cover object-center"
-        fill
-        priority
-        sizes="100vw"
-        src={HERO_BACKGROUND}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.045)_1px,transparent_1px)] bg-[size:4.5rem_4.5rem]" />
+      <motion.div
+        className="absolute left-1/2 top-24 h-72 w-72 rounded-full bg-dentova-teal-400/20 blur-3xl"
+        animate={{ x: ["-60%", "-30%", "-70%"], y: [0, 36, 0], opacity: [0.45, 0.7, 0.45] }}
+        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
       />
-      <div className="absolute inset-0 z-0 bg-gradient-to-br from-dentova-navy-950/80 via-dentova-navy-950/55 to-dentova-teal-950/70" />
-      <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:4rem_4rem]" />
-
-      <ParallaxBlob
-        className="-left-40 top-1/4"
-        color="bg-dentova-teal-500/8"
-        size="500px"
-        speed={25}
-      />
-      <ParallaxBlob
-        className="-bottom-40 right-0"
-        color="bg-dentova-magenta-500/5"
-        size="350px"
-        speed={30}
-        delay={2}
+      <motion.div
+        className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-dentova-magenta-400/20 blur-3xl"
+        animate={{ x: [20, -30, 20], y: [20, -20, 20], opacity: [0.35, 0.58, 0.35] }}
+        transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      <Container className="relative z-10 grid w-full grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-8">
-        {/* Left column: text */}
-        <motion.div
-          className="flex flex-col text-left lg:col-span-7"
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
-        >
-          <motion.div
-            className="mb-8 inline-flex items-center gap-2 self-start rounded-full border border-dentova-teal-500/30 bg-dentova-teal-950/80 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-dentova-teal-300 shadow-inner"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, delay: 0.15 }}
-          >
-            <span className="h-2 w-2 animate-ping rounded-full bg-dentova-teal-400" />
-            <span className="font-display">
-              Formations Dentaires de Pointe en Algerie
-            </span>
-          </motion.div>
+      <Container className="relative z-10">
+        <AnimatePresence mode="wait">
+          {activeSlide.kind === "home" ? (
+            <motion.div
+              key="home-centered"
+              className="mx-auto flex min-h-[calc(90vh-7rem)] max-w-5xl flex-col items-center justify-center text-center"
+              initial={{ opacity: 0, y: 28 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -28 }}
+              transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+            >
+              <Image
+                alt="Dentova"
+                className="h-auto w-48"
+                height={48}
+                priority
+                src="/brand/logo-white.svg"
+                width={192}
+              />
 
-          <motion.h1
-            className="mb-6 font-display text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl xl:text-6xl"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.25 }}
-          >
-            Ou l&apos;Excellence <br />
-            <span className="bg-gradient-to-r from-dentova-teal-400 via-dentova-lavender to-dentova-magenta-300 bg-clip-text text-transparent">
-              Rencontre l&apos;Expertise
-            </span>
-          </motion.h1>
+              <h1 className="mt-8 font-display text-6xl font-black leading-[0.82] text-white sm:text-7xl lg:text-8xl">
+                Dentova
+              </h1>
+              <p className="mt-6 max-w-3xl text-base leading-8 text-dentova-navy-100 sm:text-xl">
+                Une academie dentaire premium en Algerie pour apprendre les
+                protocoles, maitriser le geste clinique et progresser avec des
+                mentors experts.
+              </p>
 
-          <motion.p
-            className="mb-10 max-w-2xl text-base font-light leading-relaxed text-dentova-navy-200 sm:text-lg lg:text-xl"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-          >
-            Developpez vos competences cliniques aupres de conferenciers
-            internationaux de haut niveau. Debutez ou perfectionnez votre
-            pratique en implantologie, endodontie, esthetique et dentisterie
-            numerique grace a l&apos;excellence theorique et la rigueur
-            d&apos;ateliers pratiques immersifs en Algerie.
-          </motion.p>
-
-          <motion.div
-            className="mb-12 flex flex-col gap-4 sm:flex-row sm:items-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.55 }}
-          >
-            <Button asChild href="/#courses" size="lg" variant="primary">
-              Decouvrir nos formations
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-            <Button asChild href="/#contact" size="lg" variant="light">
-              Nous contacter
-              <ArrowUpRight className="h-4 w-4" />
-            </Button>
-          </motion.div>
-        </motion.div>
-
-        {/* Right column: upcoming card */}
-        <motion.div
-          className="flex justify-center lg:col-span-5 lg:justify-end"
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.7, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-        >
-          <div className="group relative w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-white/10 p-6 shadow-2xl backdrop-blur-md sm:p-8">
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-60" />
-
-            <div className="relative z-10 flex flex-col">
-              <div className="mb-6 flex items-start justify-between">
-                <div>
-                  <h3 className="font-display text-lg font-black uppercase tracking-tight">
-                    DENTOVA ACADEMY
-                  </h3>
-                  <p className="text-xs font-medium text-dentova-teal-400">
-                    Programme d&apos;elite 2026
-                  </p>
-                </div>
-                <motion.div
-                  animate={{ rotate: [0, -5, 5, -5, 0] }}
-                  className="rounded-xl border border-dentova-teal-400/30 bg-dentova-teal-500/20 p-2 text-dentova-teal-300"
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <Flame className="h-5 w-5" />
-                </motion.div>
-              </div>
-
-              {parsedUpcoming.length > 0 ? (
-                <div className="mb-6 flex flex-col gap-3">
-                  {parsedUpcoming.map((course, i) => {
-                    const days = getDaysUntil(course.date);
-                    const urgent = isUrgent(days);
-
-                    return (
-                      <motion.div
-                        key={course.id}
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, delay: 0.5 + i * 0.12 }}
-                      >
-                        <Link
-                          className="group/item flex items-center gap-3 rounded-xl border border-white/5 bg-white/5 p-3.5 transition-all duration-200 hover:border-dentova-teal-500/30 hover:bg-white/10 hover:shadow-lg hover:shadow-dentova-teal-500/5"
-                          href={`/courses/${course.slug}`}
-                        >
-                          <div className="flex shrink-0 flex-col items-center rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-center">
-                            <span className="text-[9px] font-bold uppercase leading-tight tracking-wider text-dentova-teal-400">
-                              {MONTHS_FR[Number(course.date.split("-")[1]) - 1]?.slice(0, 3)}
-                            </span>
-                            <span className="text-lg font-black leading-tight text-white">
-                              {course.date.split("-")[2]}
-                            </span>
-                          </div>
-
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5">
-                              <p className="truncate text-xs font-bold uppercase tracking-wide text-white/90 transition-colors group-hover/item:text-dentova-teal-300">
-                                {course.title}
-                              </p>
-                              {urgent && (
-                                <span className="shrink-0 rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-400">
-                                  Limite
-                                </span>
-                              )}
-                            </div>
-                            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-white/60">
-                              <span className="flex items-center gap-1">
-                                <Calendar className="h-3 w-3 shrink-0" />
-                                {formatFrenchDate(course.date)}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <MapPin className="h-3 w-3 shrink-0" />
-                                {course.location}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="shrink-0 text-white/30 transition-all duration-200 group-hover/item:translate-x-0.5 group-hover/item:text-dentova-teal-400">
-                            <ArrowRight className="h-4 w-4" />
-                          </div>
-                        </Link>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="mb-6 flex flex-col gap-4">
-                  <div className="rounded-xl border border-white/5 bg-white/5 p-4 text-center">
-                    <p className="text-sm font-medium text-white/60">
-                      Aucune formation programmee pour le moment
+              <div className="mt-10 grid w-full max-w-3xl grid-cols-1 gap-3 sm:grid-cols-3">
+                {homeStats.map((stat) => (
+                  <div
+                    className="border-y border-white/10 bg-white/[0.06] px-5 py-5 backdrop-blur-sm"
+                    key={stat.label}
+                  >
+                    <p className="font-display text-5xl font-black leading-none text-white">
+                      <MotionCounter
+                        prefix={stat.prefix}
+                        suffix={stat.suffix}
+                        value={stat.value}
+                      />
                     </p>
-                    <p className="mt-1 text-xs text-white/40">
-                      Revenez bientot pour decouvrir nos prochaines sessions
+                    <p className="mt-2 text-xs font-semibold uppercase text-white/60">
+                      {stat.label}
                     </p>
                   </div>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between border-t border-white/10 pt-5 text-left">
-                <div className="flex items-center gap-2.5">
-                  <span className="relative flex h-3 w-3">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lime-400 opacity-75" />
-                    <span className="relative inline-flex h-3 w-3 rounded-full bg-lime-500" />
-                  </span>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-dentova-navy-400">
-                      Inscriptions
-                    </p>
-                    <p className="text-xs font-semibold text-white">
-                      En cours sur dossier
-                    </p>
-                  </div>
-                </div>
-                <Link
-                  className="flex items-center gap-1.5 rounded-lg bg-white px-4 py-2 text-xs font-bold text-dentova-navy-950 shadow-sm transition-all hover:bg-dentova-magenta hover:text-white"
-                  href="/#contact"
-                >
-                  Postuler
-                  <ArrowRight className="h-3 w-3" />
-                </Link>
+                ))}
               </div>
-            </div>
-          </div>
-        </motion.div>
-      </Container>
 
-      {/* Stats bar — scroll-reveal */}
-      <Container className="relative z-10 mt-16 w-full border-t border-white/10 pt-12 lg:mt-24">
-        <div className="grid grid-cols-2 justify-items-center gap-6 md:grid-cols-4 xl:gap-8">
-          {stats.map((stat, i) => {
-            const Icon = stat.icon;
-            return (
               <motion.div
-                className="group flex flex-col items-center text-center md:items-start md:text-left"
-                key={stat.label}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.5, delay: i * 0.12, ease: [0.25, 0.1, 0.25, 1] }}
+                className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center"
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, delay: 0.2 }}
               >
-                <div className="mb-2 flex items-center gap-2.5">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-dentova-teal-500/20 bg-dentova-teal-500/10 text-dentova-teal-400 transition-transform group-hover:scale-110">
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <span className="font-display text-3xl font-black tracking-tight text-white transition-colors group-hover:text-dentova-teal-400 md:text-4xl">
-                    <MotionCounter
-                      value={stat.value}
-                      suffix={stat.suffix}
-                    />
-                  </span>
-                </div>
-                <span className="text-sm font-medium tracking-wide text-dentova-navy-300">
-                  {stat.label}
-                </span>
+                <Button asChild href="/#courses" size="lg" variant="primary">
+                  Decouvrir les formations
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+                <Button asChild href="/courses" size="lg" variant="light">
+                  Voir tout
+                  <ArrowUpRight className="h-4 w-4" />
+                </Button>
               </motion.div>
-            );
-          })}
+
+            </motion.div>
+          ) : (
+            <motion.div
+              className="grid min-h-[calc(90vh-7rem)] grid-cols-1 items-center gap-8 lg:grid-cols-12 lg:gap-10"
+              key={activeSlide.id}
+              initial={{ opacity: 0, y: 28 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -28 }}
+              transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+            >
+              <div className="lg:col-span-5">
+               <motion.div
+                  className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-2 text-xs font-bold uppercase text-dentova-teal-100 backdrop-blur"
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45 }}
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Formation a venir
+                </motion.div>
+
+                <p className="mb-3 text-sm font-semibold text-dentova-teal-200">
+                  {activeSlide.eyebrow}
+                </p>
+                <h1 className="font-display text-5xl font-black leading-[0.9] text-white sm:text-6xl xl:text-7xl">
+                  {activeSlide.title}
+                </h1>
+                <p className="mt-7 max-w-xl text-base leading-8 text-dentova-navy-100 sm:text-lg">
+                  {activeSlide.subtitle}
+                </p>
+
+                <motion.div
+                  className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45, delay: 0.2 }}
+                >
+                  <Button asChild href={activeSlide.href} size="lg" variant="primary">
+                    Voir la formation
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                  <Button asChild href="/courses" size="lg" variant="light">
+                    Voir tout
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Button>
+                </motion.div>
+
+              </div>
+
+              <div className="lg:col-span-7">
+                <div className="relative mx-auto w-full max-w-3xl">
+                  <div className="absolute inset-x-8 -bottom-6 h-24 rounded-full bg-dentova-teal-300/20 blur-3xl" />
+                  <HeroCoursePreview course={activeSlide.course} />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="mx-auto mt-8 flex w-full max-w-sm items-center justify-center gap-3">
+          <button
+            aria-label="Slide precedent"
+            className="dentova-focus flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur transition hover:border-dentova-teal-300 hover:bg-white/15"
+            onClick={goToPrevious}
+            type="button"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <div className="flex items-center gap-2 py-1">
+            {slides.map((slide, index) => (
+              <button
+                aria-label={`Afficher ${slide.label}`}
+                className={`h-2.5 rounded-full transition-all duration-300 ${
+                  index === activeIndex
+                    ? "w-10 bg-dentova-teal-300"
+                    : "w-2.5 bg-white/30 hover:bg-white/55"
+                }`}
+                key={slide.id}
+                onClick={() => setActiveIndex(index)}
+                type="button"
+              />
+            ))}
+          </div>
+          <button
+            aria-label="Slide suivant"
+            className="dentova-focus flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur transition hover:border-dentova-teal-300 hover:bg-white/15"
+            onClick={goToNext}
+            type="button"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
         </div>
       </Container>
     </section>

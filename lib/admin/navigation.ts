@@ -3,6 +3,7 @@ import {
   BookOpen,
   FolderTree,
   GraduationCap,
+  Handshake,
   HelpCircle,
   ImageIcon,
   LayoutDashboard,
@@ -49,6 +50,7 @@ export const adminNavGroups: AdminNavGroup[] = [
       { href: "/admin/categories", label: "Catégories", icon: FolderTree },
       { href: "/admin/mentors", label: "Formateurs", icon: GraduationCap },
       { href: "/admin/posts", label: "Blog", icon: Newspaper },
+      { href: "/admin/sponsors", label: "Sponsors", icon: Handshake },
       { href: "/admin/workshop-images", label: "Galerie", icon: ImageIcon },
       { href: "/admin/faqs", label: "FAQ", icon: HelpCircle }
     ]

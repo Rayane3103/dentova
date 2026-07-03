@@ -1,9 +1,8 @@
 "use client";
 
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 import { DataTable, type DataTableColumn } from "@/components/admin/DataTable";
 import { AdminDeleteButton } from "@/components/admin/AdminDeleteButton";
 import { formatShortDate } from "@/lib/format";
@@ -29,7 +28,10 @@ const columns: DataTableColumn<Course>[] = [
           <p className="truncate text-sm font-semibold text-slate-800">
             {course.title}
           </p>
-          <p className="text-xs text-slate-400">{course.category?.name ?? "Non classé"}</p>
+          <p className="text-xs text-slate-400">
+            {course.courseType === "cycle" ? "Cycle" : "Formation"} ·{" "}
+            {course.category?.name ?? "Non classé"}
+          </p>
         </div>
       </div>
     )

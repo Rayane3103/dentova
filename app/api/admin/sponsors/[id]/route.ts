@@ -1,23 +1,11 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
+import { serializeSponsor } from "@/lib/data/serialize";
 import { connectToDatabase, hasDatabaseConfig } from "@/lib/db/connect";
-import { slugify } from "@/lib/slug";
-import { courseUpdateSchema } from "@/lib/validators/course";
-import { Course } from "@/models/Course";
+import { sponsorSchema } from "@/lib/validators/sponsor";
+import { Sponsor } from "@/models/Sponsor";
 
 export const runtime = "nodejs";
-
-function normalizeCourseUpdate(data: Record<string, unknown>): Record<string, unknown> {
-  if (data.courseType === "cycle" && Array.isArray(data.cycleDates) && data.cycleDates[0]) {
-    return { ...data, date: data.cycleDates[0] };
-  }
-
-  if (data.courseType === "formation") {
-    return { ...data, cycleDates: [] };
-  }
-
-  return data;
-}
 
 type RouteContext = {
   params: Promise<{
@@ -33,17 +21,17 @@ export async function GET(_request: Request, { params }: RouteContext) {
   }
 
   await connectToDatabase();
-  const course = await Course.findById(id).lean();
+  const sponsor = await Sponsor.findById(id).lean();
 
-  return course
-    ? NextResponse.json({ course })
-    : NextResponse.json({ error: "Course not found." }, { status: 404 });
+  return sponsor
+    ? NextResponse.json({ sponsor: serializeSponsor(sponsor as Record<string, unknown>) })
+    : NextResponse.json({ error: "Sponsor not found." }, { status: 404 });
 }
 
 export async function PATCH(request: Request, { params }: RouteContext) {
   const { id } = await params;
   const payload = await request.json().catch(() => null);
-  const parsed = courseUpdateSchema.safeParse(payload);
+  const parsed = sponsorSchema.partial().safeParse(payload);
 
   if (!parsed.success) {
     return NextResponse.json({ errors: parsed.error.flatten() }, { status: 422 });
@@ -54,19 +42,15 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   }
 
   await connectToDatabase();
-  const data = normalizeCourseUpdate(parsed.data);
-  const update = {
-    ...data,
-    ...(typeof data.title === "string" ? { slug: slugify(data.title) } : {})
-  };
-  const course = await Course.findByIdAndUpdate(id, update, { new: true });
+  const sponsor = await Sponsor.findByIdAndUpdate(id, parsed.data, {
+    new: true
+  });
 
   revalidatePath("/");
-  revalidatePath("/courses");
 
-  return course
-    ? NextResponse.json({ course })
-    : NextResponse.json({ error: "Course not found." }, { status: 404 });
+  return sponsor
+    ? NextResponse.json({ sponsor: serializeSponsor(sponsor.toObject()) })
+    : NextResponse.json({ error: "Sponsor not found." }, { status: 404 });
 }
 
 export async function DELETE(_request: Request, { params }: RouteContext) {
@@ -77,10 +61,9 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
   }
 
   await connectToDatabase();
-  await Course.findByIdAndDelete(id);
+  await Sponsor.findByIdAndDelete(id);
 
   revalidatePath("/");
-  revalidatePath("/courses");
 
   return NextResponse.json({ ok: true });
 }

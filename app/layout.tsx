@@ -4,6 +4,10 @@ import { Suspense } from "react";
 import { Toaster } from "sonner";
 import { TopLoader } from "@/components/layout/TopLoader";
 import { PixelScripts } from "@/components/layout/PixelScripts";
+import {
+  GoogleTagManagerNoScript,
+  GoogleTagManagerScript
+} from "@/components/layout/GoogleTagManager";
 import "./globals.css";
 
 const inter = Inter({
@@ -47,7 +51,11 @@ export default function RootLayout({
       className={`${inter.variable} ${darkerGrotesque.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        <GoogleTagManagerScript />
+      </head>
       <body className="font-sans antialiased" suppressHydrationWarning>
+        <GoogleTagManagerNoScript />
         <TopLoader />
         {children}
         <Toaster richColors position="top-right" />

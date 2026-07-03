@@ -26,6 +26,7 @@ export function CoursesSection({
   courses: Course[];
   limit?: number;
 }) {
+  const [activeCourseType, setActiveCourseType] = useState<"all" | "formation" | "cycle">("all");
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeLocation, setActiveLocation] = useState("all");
 
@@ -39,14 +40,16 @@ export function CoursesSection({
 
   const courses = useMemo(() => {
     const filtered = initialCourses.filter((course) => {
+      const matchCourseType =
+        activeCourseType === "all" || course.courseType === activeCourseType;
       const matchCategory =
         activeCategory === "all" || course.category.slug === activeCategory;
       const matchLocation =
         activeLocation === "all" || course.location === activeLocation;
-      return matchCategory && matchLocation;
+      return matchCourseType && matchCategory && matchLocation;
     });
     return typeof limit === "number" ? filtered.slice(0, limit) : filtered;
-  }, [activeCategory, activeLocation, initialCourses, limit]);
+  }, [activeCategory, activeCourseType, activeLocation, initialCourses, limit]);
 
   return (
     <section
@@ -90,7 +93,7 @@ export function CoursesSection({
           <h2 className="font-display text-3xl font-black leading-tight text-white sm:text-4xl lg:text-5xl">
             Prenez place pour nos prochaines{" "}
             <span className="bg-gradient-to-r from-dentova-teal-400 via-dentova-lavender to-dentova-magenta-300 bg-clip-text text-transparent">
-              Masterclasses & Travaux Pratiques
+              Formations dentaires & Cycles
             </span>
           </h2>
           <motion.p
@@ -100,9 +103,8 @@ export function CoursesSection({
             viewport={{ once: true }}
             transition={{ duration: 0.4, delay: 0.1 }}
           >
-            Cliquez sur un cursus pour ouvrir sa fiche clinique structuree,
-            explorer ses modules theoriques d&apos;excellence et postuler en
-            ligne.
+            Consultez le programme, les dates, le lieu et les modalités
+            d&apos;inscription de chaque formation.
           </motion.p>
         </motion.div>
 
@@ -114,6 +116,31 @@ export function CoursesSection({
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.45, delay: 0.15 }}
         >
+          <div className="inline-flex rounded-full border border-white/10 bg-white/5 p-1 lg:col-span-12">
+            {[
+              { id: "formation", label: "Formations" },
+              { id: "cycle", label: "Cycles" }
+            ].map((item) => (
+              <button
+                className={cn(
+                  "rounded-full px-4 py-2 text-xs font-black uppercase tracking-wider transition-all",
+                  activeCourseType === item.id
+                    ? "bg-white text-dentova-navy-950"
+                    : "text-dentova-navy-300 hover:text-white"
+                )}
+                key={item.id}
+                onClick={() =>
+                  setActiveCourseType((current) =>
+                    current === item.id ? "all" : (item.id as "formation" | "cycle")
+                  )
+                }
+                type="button"
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+
           <div className="flex flex-col gap-3 lg:col-span-8">
             <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-dentova-navy-400">
               <Filter className="h-2.5 w-2.5 text-dentova-teal-400" />
@@ -196,6 +223,7 @@ export function CoursesSection({
                 <button
                   className="mt-4 cursor-pointer rounded-full border border-white/10 bg-white/5 px-5 py-2 text-xs font-bold text-white transition-colors hover:border-dentova-teal-400/50 hover:bg-white/10"
                   onClick={() => {
+                    setActiveCourseType("all");
                     setActiveCategory("all");
                     setActiveLocation("all");
                   }}

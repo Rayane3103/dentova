@@ -7,6 +7,14 @@ type EditCoursePageProps = {
   params: Promise<{ id: string }>;
 };
 
+function toDateInputValue(value: unknown) {
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+
+  return String(value).slice(0, 10);
+}
+
 export default async function EditCoursePage({ params }: EditCoursePageProps) {
   const { id } = await params;
   const course = await getCourseAdminRecord(id);
@@ -25,7 +33,11 @@ export default async function EditCoursePage({ params }: EditCoursePageProps) {
             categoryId: String(course.categoryId),
             contactEmail: String(course.contactEmail),
             contactPhone: String(course.contactPhone),
-            date: course.date as Date,
+            courseType: course.courseType === "cycle" ? "cycle" : "formation",
+            cycleDates: Array.isArray(course.cycleDates)
+              ? (course.cycleDates.map((date) => toDateInputValue(date)) as unknown as Date[])
+              : [],
+            date: toDateInputValue(course.date) as unknown as Date,
             description: String(course.description),
             excerpt: course.excerpt ? String(course.excerpt) : "",
             featured: Boolean(course.featured),
@@ -39,7 +51,8 @@ export default async function EditCoursePage({ params }: EditCoursePageProps) {
             showOnHomepage: Boolean(course.showOnHomepage),
             subtitle: course.subtitle ? String(course.subtitle) : "",
             time: course.time ? String(course.time) : "",
-            title: String(course.title)
+            title: String(course.title),
+            youtubeUrl: course.youtubeUrl ? String(course.youtubeUrl) : ""
           }}
         />
       </div>

@@ -8,6 +8,16 @@ import { Course } from "@/models/Course";
 
 export const runtime = "nodejs";
 
+function normalizeCoursePayload<
+  T extends { courseType?: string; cycleDates?: Date[]; date: Date; title: string }
+>(data: T) {
+  if (data.courseType === "cycle" && data.cycleDates?.[0]) {
+    return { ...data, date: data.cycleDates[0] };
+  }
+
+  return { ...data, courseType: "formation", cycleDates: [] };
+}
+
 export async function GET() {
   const courses = await getAllCourses();
   return NextResponse.json({ courses });
@@ -29,9 +39,10 @@ export async function POST(request: Request) {
   }
 
   await connectToDatabase();
+  const data = normalizeCoursePayload(parsed.data);
   const course = await Course.create({
-    ...parsed.data,
-    slug: slugify(parsed.data.title)
+    ...data,
+    slug: slugify(data.title)
   });
 
   revalidatePath("/");

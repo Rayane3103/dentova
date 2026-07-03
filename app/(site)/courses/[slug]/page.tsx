@@ -5,6 +5,7 @@ import {
   Mail,
   MapPin,
   Phone,
+  PlayCircle,
   UserRound
 } from "lucide-react";
 import type { Metadata } from "next";
@@ -21,6 +22,7 @@ import {
   getCourseBySlug
 } from "@/lib/data/queries";
 import { formatCourseDate, formatPrice } from "@/lib/format";
+import { getYouTubeEmbedUrl } from "@/lib/youtube";
 
 export const dynamic = "force-dynamic";
 
@@ -78,6 +80,13 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
     notFound();
   }
 
+  const isCycle = course.courseType === "cycle";
+  const cycleDates = isCycle && course.cycleDates.length > 0 ? course.cycleDates : [course.date];
+  const dateSummary = isCycle
+    ? `${cycleDates.length} dates de cycle`
+    : formatCourseDate(course.date);
+  const youtubeEmbedUrl = getYouTubeEmbedUrl(course.youtubeUrl);
+
   return (
     <main className="bg-dentova-canvas">
       {/* ── JSON-LD structured data for Meta/Google ── */}
@@ -119,7 +128,7 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
         <Container>
           <div className="mx-auto max-w-3xl text-center">
             <Badge className="mb-4 bg-white/15 text-white backdrop-blur-sm">
-              {course.category?.name ?? "Formation"}
+              {isCycle ? "Cycle" : "Formation"} · {course.category?.name ?? "Formation"}
             </Badge>
             <h1 className="text-3xl font-extrabold leading-tight sm:text-4xl lg:text-5xl">
               {course.title}
@@ -132,7 +141,7 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
 
             {/* Quick info pills */}
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <InfoPill icon={CalendarDays} text={formatCourseDate(course.date)} />
+              <InfoPill icon={CalendarDays} text={dateSummary} />
               {course.time ? (
                 <InfoPill icon={Clock} text={course.time} />
               ) : null}
@@ -186,7 +195,7 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
                   <DetailRow icon={MapPin} label="Lieu" value={course.location} />
                   <DetailRow
                     icon={Clock}
-                    label="Date & Heure"
+                    label={isCycle ? "Dates & Heure" : "Date & Heure"}
                     value={`${formatCourseDate(course.date)}${course.time ? ` — ${course.time}` : ""}`}
                   />
                   <DetailRow
@@ -197,6 +206,52 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
                   />
                 </div>
               </Card>
+
+              {isCycle ? (
+                <Card className="p-6">
+                  <h2 className="mb-4 flex items-center gap-2 text-lg font-extrabold text-dentova-graphite">
+                    <CalendarDays className="h-5 w-5 text-dentova-teal" />
+                    Dates du cycle
+                  </h2>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {cycleDates.map((date, index) => (
+                      <div
+                        className="rounded-xl border border-dentova-ash bg-white px-4 py-3"
+                        key={`${date}-${index}`}
+                      >
+                        <p className="text-xs font-bold uppercase tracking-wider text-dentova-muted">
+                          Date {index + 1}
+                        </p>
+                        <p className="mt-1 text-sm font-extrabold text-dentova-graphite">
+                          {formatCourseDate(date)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              ) : null}
+
+              {youtubeEmbedUrl ? (
+                <section>
+                  <h2 className="mb-4 flex items-center gap-2 text-2xl font-extrabold text-dentova-graphite">
+                    <PlayCircle className="h-6 w-6 text-dentova-teal" />
+                    Lecture vidéo
+                  </h2>
+                  <div className="overflow-hidden rounded-2xl border border-dentova-ash bg-dentova-graphite shadow-luxe">
+                    <div className="aspect-video">
+                      <iframe
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                        className="h-full w-full"
+                        loading="lazy"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        src={youtubeEmbedUrl}
+                        title={`Lecture vidéo - ${course.title}`}
+                      />
+                    </div>
+                  </div>
+                </section>
+              ) : null}
             </div>
 
             {/* Right column — Form + sidebar cards */}

@@ -5,6 +5,13 @@ const CourseSchema = new Schema(
     categoryId: { type: Schema.Types.ObjectId, ref: "Category", required: true },
     contactEmail: { type: String, required: true, trim: true },
     contactPhone: { type: String, required: true, trim: true },
+    courseType: {
+      type: String,
+      enum: ["formation", "cycle"],
+      default: "formation",
+      required: true
+    },
+    cycleDates: [{ type: Date }],
     date: { type: Date, required: true },
     description: { type: String, required: true },
     excerpt: { type: String, trim: true },
@@ -20,7 +27,8 @@ const CourseSchema = new Schema(
     slug: { type: String, required: true, unique: true, trim: true },
     subtitle: { type: String, trim: true },
     time: { type: String, trim: true },
-    title: { type: String, required: true, trim: true }
+    title: { type: String, required: true, trim: true },
+    youtubeUrl: { type: String, trim: true }
   },
   { timestamps: true }
 );

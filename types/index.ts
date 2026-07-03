@@ -16,6 +16,8 @@ export type Course = CourseStatus & {
   id: string;
   title: string;
   slug: string;
+  courseType: "formation" | "cycle";
+  cycleDates: string[];
   subtitle?: string;
   description: string;
   excerpt: string;
@@ -30,6 +32,7 @@ export type Course = CourseStatus & {
   imageUrl: string;
   imagePublicId?: string;
   maxSeats?: number;
+  youtubeUrl?: string;
 };
 
 export type WorkshopImage = {
@@ -38,6 +41,16 @@ export type WorkshopImage = {
   description?: string;
   imageUrl: string;
   imagePublicId?: string;
+  order: number;
+  active: boolean;
+};
+
+export type Sponsor = {
+  id: string;
+  name: string;
+  imageUrl: string;
+  imagePublicId?: string;
+  websiteUrl?: string;
   order: number;
   active: boolean;
 };
