@@ -7,7 +7,7 @@ import { ExternalLink } from "lucide-react";
 
 export function AdminSidebar() {
   return (
-    <aside className="hidden w-60 shrink-0 flex-col bg-dentova-gradient lg:flex">
+    <aside className="hidden h-dvh min-h-0 w-60 shrink-0 flex-col bg-dentova-gradient lg:flex">
       {/* Logo */}
       <div className="flex h-16 shrink-0 items-center gap-3 border-b border-white/8 px-5">
         <Link
@@ -36,7 +36,7 @@ export function AdminSidebar() {
 
       {/* Navigation */}
       <nav
-        className="flex-1 overflow-y-auto px-2 py-4"
+        className="min-h-0 flex-1 overflow-y-auto px-2 py-4"
         aria-label="Navigation admin"
       >
         <AdminNavLinks variant="sidebar" />
