@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { type FieldErrors, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 import { ImageUploadField } from "@/components/admin/ImageUploadField";
@@ -65,10 +65,12 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
       contactEmail: initialValues?.contactEmail || siteConfig.email,
       contactPhone: initialValues?.contactPhone || siteConfig.phone,
       courseType: initialValues?.courseType || "formation",
-      cycleDates: toDateInputValues(
-        initialValues?.cycleDates,
-        initialValues?.date
-      ) as unknown as Date[],
+      cycleDates: initialValues?.courseType === "cycle"
+        ? (toDateInputValues(
+            initialValues?.cycleDates,
+            initialValues?.date
+          ) as unknown as Date[])
+        : [],
       date: toDateInputValue(initialValues?.date) as unknown as Date,
       description: initialValues?.description || "",
       excerpt: initialValues?.excerpt || "",
@@ -149,6 +151,15 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
     setValue("cycleDates", [], { shouldDirty: true, shouldValidate: true });
   };
 
+  const onInvalid = (formErrors: FieldErrors<CourseFormValues>) => {
+    const firstError = Object.values(formErrors).find((error) => error?.message);
+    toast.error(
+      typeof firstError?.message === "string"
+        ? firstError.message
+        : "Veuillez corriger les erreurs du formulaire."
+    );
+  };
+
   const onSubmit = async (values: CourseFormValues) => {
     const filledCycleDates = cycleDateValues.filter(Boolean);
     const isCycleSubmission = values.courseType === "cycle";
@@ -181,7 +192,7 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
   };
 
   return (
-    <form className={adminFormClassName} onSubmit={handleSubmit(onSubmit)}>
+    <form className={adminFormClassName} onSubmit={handleSubmit(onSubmit, onInvalid)}>
       <label className="block">
         <span className={adminLabelClassName}>Titre *</span>
         <Input placeholder="Titre du cours" size="sm" {...register("title")} />

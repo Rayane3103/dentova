@@ -53,7 +53,7 @@ export function CoursesSection({
 
   return (
     <section
-      className="relative border-t border-white/5 bg-dentova-navy-950 px-6 py-24 text-left text-white"
+      className="relative overflow-hidden border-t border-white/5 bg-dentova-navy-950 px-6 py-24 text-left text-white"
       id="courses"
     >
       <div className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:4rem_4rem]" />

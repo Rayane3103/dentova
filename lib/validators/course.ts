@@ -21,7 +21,11 @@ const baseCourseSchema = z.object({
   contactEmail: z.string().email("Contact email is invalid."),
   contactPhone: z.string().min(5, "Contact phone is required."),
   courseType: courseTypeSchema.default("formation"),
-  cycleDates: z.array(z.coerce.date()).optional(),
+  cycleDates: z.preprocess(
+    (value) =>
+      Array.isArray(value) ? value.filter((item) => item != null && item !== "") : value,
+    z.array(z.coerce.date()).optional()
+  ),
   date: z.coerce.date(),
   description: z.string().min(10, "Description is required."),
   excerpt: z.string().optional(),
