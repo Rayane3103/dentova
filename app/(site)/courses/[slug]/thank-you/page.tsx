@@ -56,9 +56,9 @@ export default async function CourseThankYouPage({
   return (
     <main className="min-h-screen bg-dentova-canvas">
       <ReservationConversionTracker
-        courseId={course.id}
+        categorySlug={course.category?.slug}
         courseName={course.title}
-        currency="DZD"
+        courseSlug={course.slug}
         reservationId={reservation}
         value={course.price}
       />

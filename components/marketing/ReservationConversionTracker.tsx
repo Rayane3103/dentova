@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { getCourseLeadPayload } from "@/lib/marketing/meta-course-tracking";
 
 type Fbq = (
   command: "track",
@@ -15,17 +16,17 @@ type TrackingWindow = Window & {
 };
 
 type ReservationConversionTrackerProps = {
-  courseId: string;
   courseName: string;
-  currency: string;
+  courseSlug: string;
+  categorySlug?: string;
   reservationId?: string;
   value: number;
 };
 
 export function ReservationConversionTracker({
-  courseId,
   courseName,
-  currency,
+  courseSlug,
+  categorySlug,
   reservationId,
   value
 }: ReservationConversionTrackerProps) {
@@ -47,28 +48,23 @@ export function ReservationConversionTracker({
       // Continue tracking if session storage is unavailable.
     }
 
-    const eventPayload = {
+    const leadPayload = getCourseLeadPayload(
+      courseSlug,
+      courseName,
       value,
-      currency,
-      content_name: courseName,
-      content_ids: [courseId],
-      content_type: "product"
-    };
-
+      categorySlug
+    );
     const trackingWindow = window as TrackingWindow;
 
-    trackingWindow.fbq?.("track", "Lead", eventPayload, { eventID: eventId });
+    trackingWindow.fbq?.("track", "Lead", leadPayload, { eventID: eventId });
 
     trackingWindow.dataLayer = trackingWindow.dataLayer || [];
     trackingWindow.dataLayer.push({
       event: "dentova_reservation_lead",
       event_id: eventId,
-      course_id: courseId,
-      course_name: courseName,
-      value,
-      currency
+      ...leadPayload
     });
-  }, [courseId, courseName, currency, reservationId, value]);
+  }, [categorySlug, courseName, courseSlug, reservationId, value]);
 
   return null;
 }

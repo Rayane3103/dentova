@@ -12,6 +12,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ReservationForm } from "@/components/forms/ReservationForm";
+import { CourseViewContentTracker } from "@/components/marketing/CourseViewContentTracker";
 import { ImageGallery } from "@/components/public/ImageGallery";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
@@ -89,6 +90,11 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
 
   return (
     <main className="bg-dentova-canvas">
+      <CourseViewContentTracker
+        categorySlug={course.category?.slug}
+        slug={course.slug}
+        title={course.title}
+      />
       {/* ── JSON-LD structured data for Meta/Google ── */}
       <script
         dangerouslySetInnerHTML={{
@@ -260,7 +266,13 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
               <Card className="overflow-hidden">
                 <div className="bg-dentova-graphite px-6 py-5 text-center text-white">
                   <p className="text-sm font-semibold text-white/60">Prix de la formation</p>
-                  <p className="mt-1 text-3xl font-extrabold">{formatPrice(course.price)}</p>
+                  <p
+                    className="price mt-1 text-3xl font-extrabold"
+                    data-currency="DZD"
+                    data-value={course.price.toFixed(2)}
+                  >
+                    {formatPrice(course.price)}
+                  </p>
                   {course.maxSeats ? (
                     <p className="mt-1.5 text-xs font-medium text-white/50">
                       Places limitées — {course.maxSeats} participants maximum
