@@ -22,8 +22,7 @@ import {
   getActiveWorkshopImages,
   getCourseBySlug
 } from "@/lib/data/queries";
-import { formatCourseDate, formatPrice } from "@/lib/format";
-import { convertDzdPriceToUsd } from "@/lib/marketing/meta-course-tracking";
+import { formatCourseDate, formatMetaSelectablePrice, formatPrice } from "@/lib/format";
 import { getYouTubeEmbedUrl } from "@/lib/youtube";
 
 export const dynamic = "force-dynamic";
@@ -268,16 +267,8 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
               <Card className="overflow-hidden">
                 <div className="bg-dentova-graphite px-6 py-5 text-center text-white">
                   <p className="text-sm font-semibold text-white/60">Prix de la formation</p>
-                  <p
-                    className="price mt-1 text-3xl font-extrabold"
-                    data-currency="DZD"
-                    data-currency-dzd="DZD"
-                    data-currency-usd="USD"
-                    data-value={course.price.toFixed(2)}
-                    data-value-dzd={course.price.toFixed(2)}
-                    data-value-usd={convertDzdPriceToUsd(course.price).toFixed(2)}
-                  >
-                    {formatPrice(course.price)}
+                  <p className="price mt-1 text-3xl font-extrabold">
+                    {formatMetaSelectablePrice(course.price)}
                   </p>
                   {course.maxSeats ? (
                     <p className="mt-1.5 text-xs font-medium text-white/50">

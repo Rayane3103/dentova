@@ -3,6 +3,9 @@ export const formatPrice = (price: number) =>
     maximumFractionDigits: 0
   }).format(price) + " DA";
 
+/** No thousand separators — Meta Event Setup Tool reads this visible text. */
+export const formatMetaSelectablePrice = (price: number) => `${price} DA`;
+
 export const formatCourseDate = (value: string | Date) =>
   new Intl.DateTimeFormat("fr-FR", {
     weekday: "long",
