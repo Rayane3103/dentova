@@ -12,7 +12,6 @@ import {
   ShieldCheck,
   User
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -41,7 +40,6 @@ const emptyValues = (courseId: string): ReservationValues => ({
 });
 
 export function ReservationForm({ course }: { course: Course }) {
-  const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
   const {
     formState: { errors, isSubmitting },
@@ -71,7 +69,7 @@ export function ReservationForm({ course }: { course: Course }) {
 
     reset(emptyValues(course.id));
     setIsRedirecting(true);
-    router.push(`/courses/${course.slug}/thank-you${query}`);
+    window.location.assign(`/courses/${course.slug}/thank-you${query}`);
   };
 
   return (
