@@ -2,18 +2,7 @@
 
 import { useEffect } from "react";
 import { getCourseLeadPayload } from "@/lib/marketing/meta-course-tracking";
-
-type Fbq = (
-  command: "track",
-  eventName: "Lead",
-  parameters: Record<string, unknown>,
-  options?: { eventID?: string }
-) => void;
-
-type TrackingWindow = Window & {
-  dataLayer?: Record<string, unknown>[];
-  fbq?: Fbq;
-};
+import { trackMetaEvent } from "@/lib/marketing/track-meta-event";
 
 type ReservationConversionTrackerProps = {
   courseName: string;
@@ -54,15 +43,10 @@ export function ReservationConversionTracker({
       value,
       categorySlug
     );
-    const trackingWindow = window as TrackingWindow;
 
-    trackingWindow.fbq?.("track", "Lead", leadPayload, { eventID: eventId });
-
-    trackingWindow.dataLayer = trackingWindow.dataLayer || [];
-    trackingWindow.dataLayer.push({
-      event: "dentova_reservation_lead",
-      event_id: eventId,
-      ...leadPayload
+    trackMetaEvent("Lead", leadPayload, {
+      dataLayerEvent: "dentova_reservation_lead",
+      eventID: eventId
     });
   }, [categorySlug, courseName, courseSlug, reservationId, value]);
 

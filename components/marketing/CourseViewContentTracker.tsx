@@ -1,40 +1,35 @@
 "use client";
 
 import { useEffect } from "react";
-import { getCourseMetaContent } from "@/lib/marketing/meta-course-tracking";
-
-type TrackingWindow = Window & {
-  dataLayer?: Record<string, unknown>[];
-  fbq?: (
-    command: "track",
-    eventName: "ViewContent",
-    parameters: Record<string, string>
-  ) => void;
-};
+import {
+  getCourseMetaContent,
+  getCourseValuePayload
+} from "@/lib/marketing/meta-course-tracking";
+import { trackMetaEvent } from "@/lib/marketing/track-meta-event";
 
 type CourseViewContentTrackerProps = {
   slug: string;
   title: string;
+  price: number;
   categorySlug?: string;
 };
 
 export function CourseViewContentTracker({
   slug,
   title,
+  price,
   categorySlug
 }: CourseViewContentTrackerProps) {
   useEffect(() => {
-    const metaContent = getCourseMetaContent(slug, title, categorySlug);
-    const trackingWindow = window as TrackingWindow;
+    const viewContentPayload = {
+      ...getCourseMetaContent(slug, title, categorySlug),
+      ...getCourseValuePayload(price)
+    };
 
-    trackingWindow.fbq?.("track", "ViewContent", metaContent);
-
-    trackingWindow.dataLayer = trackingWindow.dataLayer || [];
-    trackingWindow.dataLayer.push({
-      event: "dentova_view_content",
-      ...metaContent
+    trackMetaEvent("ViewContent", viewContentPayload, {
+      dataLayerEvent: "dentova_view_content"
     });
-  }, [categorySlug, slug, title]);
+  }, [categorySlug, price, slug, title]);
 
   return null;
 }

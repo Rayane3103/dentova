@@ -53,15 +53,15 @@ export default function RootLayout({
     >
       <head>
         <GoogleTagManagerScript />
+        <Suspense fallback={null}>
+          <PixelScripts />
+        </Suspense>
       </head>
       <body className="font-sans antialiased" suppressHydrationWarning>
         <GoogleTagManagerNoScript />
         <TopLoader />
         {children}
         <Toaster richColors position="top-right" />
-        <Suspense fallback={null}>
-          <PixelScripts />
-        </Suspense>
       </body>
     </html>
   );

@@ -23,6 +23,7 @@ import {
   getCourseBySlug
 } from "@/lib/data/queries";
 import { formatCourseDate, formatPrice } from "@/lib/format";
+import { convertDzdPriceToUsd } from "@/lib/marketing/meta-course-tracking";
 import { getYouTubeEmbedUrl } from "@/lib/youtube";
 
 export const dynamic = "force-dynamic";
@@ -92,6 +93,7 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
     <main className="bg-dentova-canvas">
       <CourseViewContentTracker
         categorySlug={course.category?.slug}
+        price={course.price}
         slug={course.slug}
         title={course.title}
       />
@@ -269,7 +271,9 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
                   <p
                     className="price mt-1 text-3xl font-extrabold"
                     data-currency="DZD"
+                    data-currency-usd="USD"
                     data-value={course.price.toFixed(2)}
+                    data-value-usd={convertDzdPriceToUsd(course.price).toFixed(2)}
                   >
                     {formatPrice(course.price)}
                   </p>

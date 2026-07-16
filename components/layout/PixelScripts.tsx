@@ -1,69 +1,65 @@
+import { MetaFbeventsLoader, MetaPixelInit } from "@/components/layout/MetaPixelScript";
 import { tryConnectToDatabase } from "@/lib/db/connect";
 import { Pixel } from "@/models/Pixel";
 
+const ENV_META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID?.trim();
+
+function uniqueIds(ids: string[]) {
+  return [...new Set(ids.filter(Boolean))];
+}
+
 /**
- * Server component that fetches active pixels from the database and
- * injects their tracking scripts into the document <head>.
- *
- * This component is included in the root layout so pixels fire on
- * every page (public, admin, and marketer). The marketer can test
- * pixel activation from any page.
+ * Fetches active pixels from the database and injects tracking scripts
+ * into the document head. Meta falls back to NEXT_PUBLIC_META_PIXEL_ID
+ * when no active DB pixel is configured.
  */
 export async function PixelScripts() {
-  // Silent skip — no database, no pixels
-  if (!process.env.MONGODB_URI) {
-    return null;
+  const metaPixelIds: string[] = [];
+  const tiktokPixelIds: string[] = [];
+
+  if (process.env.MONGODB_URI) {
+    try {
+      await tryConnectToDatabase();
+      const docs = await Pixel.find({ active: true }).lean();
+
+      for (const doc of docs) {
+        const platform = String(doc.platform);
+        const pixelId = String(doc.pixelId);
+
+        if (platform === "meta") {
+          metaPixelIds.push(pixelId);
+        }
+
+        if (platform === "tiktok") {
+          tiktokPixelIds.push(pixelId);
+        }
+      }
+    } catch {
+      // Fall through to env fallback below.
+    }
   }
 
-  let pixels: { platform: string; pixelId: string }[] = [];
-
-  try {
-    await tryConnectToDatabase();
-    const docs = await Pixel.find({ active: true }).lean();
-
-    pixels = docs.map((doc) => ({
-      platform: String(doc.platform),
-      pixelId: String(doc.pixelId)
-    }));
-  } catch {
-    // Silently skip on any error — don't break the page for tracking
-    return null;
+  if (metaPixelIds.length === 0 && ENV_META_PIXEL_ID) {
+    metaPixelIds.push(ENV_META_PIXEL_ID);
   }
 
-  if (pixels.length === 0) {
+  const uniqueMetaPixelIds = uniqueIds(metaPixelIds);
+  const uniqueTiktokPixelIds = uniqueIds(tiktokPixelIds);
+
+  if (uniqueMetaPixelIds.length === 0 && uniqueTiktokPixelIds.length === 0) {
     return null;
   }
 
   return (
     <>
-      {pixels.map((pixel) => {
-        if (pixel.platform === "meta") {
-          return (
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `
-!function(f,b,e,v,n,t,s)
-{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-n.queue=[];t=b.createElement(e);t.async=!0;
-t.src=v;s=b.getElementsByTagName(e)[0];
-s.parentNode.insertBefore(t,s)}(window,document,'script',
-'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '${pixel.pixelId}');
-fbq('track', 'PageView');
-              `.trim()
-              }}
-              key={`meta-${pixel.pixelId}`}
-            />
-          );
-        }
-
-        if (pixel.platform === "tiktok") {
-          return (
-            <script
-              dangerouslySetInnerHTML={{
-                __html: `
+      {uniqueMetaPixelIds.length > 0 ? <MetaFbeventsLoader /> : null}
+      {uniqueMetaPixelIds.map((pixelId) => (
+        <MetaPixelInit key={`meta-${pixelId}`} pixelId={pixelId} />
+      ))}
+      {uniqueTiktokPixelIds.map((pixelId) => (
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
 !function(w,d,t){w.TiktokAnalyticsObject=t;
 var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify",
 "instances","debug","on","off","once","ready","alias","group",
@@ -79,16 +75,13 @@ var o=document.createElement("script");o.type="text/javascript",
 o.async=!0,o.src=i+"?sdkid="+e+"&lib="+t;
 var a=document.getElementsByTagName("script")[0];
 a.parentNode.insertBefore(o,a)};
-ttq.load('${pixel.pixelId}');ttq.page();}(window,document,'ttq');
-              `.trim()
-              }}
-              key={`tiktok-${pixel.pixelId}`}
-            />
-          );
-        }
-
-        return null;
-      })}
+ttq.load('${pixelId}');ttq.page();}(window,document,'ttq');
+            `.trim()
+          }}
+          id={`tiktok-pixel-${pixelId}`}
+          key={`tiktok-${pixelId}`}
+        />
+      ))}
     </>
   );
 }
