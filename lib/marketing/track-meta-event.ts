@@ -1,4 +1,4 @@
-type MetaEventName = "Lead" | "ViewContent";
+type MetaEventName = "Purchase" | "ViewContent";
 
 type TrackingWindow = Window & {
   dataLayer?: Record<string, unknown>[];
