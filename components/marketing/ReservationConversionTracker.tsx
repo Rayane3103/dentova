@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { getCoursePurchasePayload } from "@/lib/marketing/meta-course-tracking";
-import { trackMetaEvent } from "@/lib/marketing/track-meta-event";
+import { getCourseTrackingPayload } from "@/lib/marketing/meta-course-tracking";
+import { pushDataLayerEvent } from "@/lib/marketing/track-meta-event";
 
 type ReservationConversionTrackerProps = {
   courseName: string;
@@ -37,16 +37,9 @@ export function ReservationConversionTracker({
       // Continue tracking if session storage is unavailable.
     }
 
-    const purchasePayload = getCoursePurchasePayload(
-      courseSlug,
-      courseName,
-      value,
-      categorySlug
-    );
-
-    trackMetaEvent("Purchase", purchasePayload, {
-      dataLayerEvent: "dentova_reservation_purchase",
-      eventID: eventId
+    pushDataLayerEvent("dentova_reservation_complete", {
+      event_id: eventId,
+      ...getCourseTrackingPayload(courseSlug, courseName, value, categorySlug)
     });
   }, [categorySlug, courseName, courseSlug, reservationId, value]);
 

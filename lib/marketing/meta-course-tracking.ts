@@ -15,7 +15,7 @@ export type CourseValuePayload = {
   currency: "DZD";
 };
 
-export type CoursePurchasePayload = CourseMetaContent & CourseValuePayload;
+export type CourseTrackingPayload = CourseMetaContent & CourseValuePayload;
 
 export function getCourseValuePayload(priceDzd: number): CourseValuePayload {
   return {
@@ -43,12 +43,12 @@ export function getCourseMetaContent(
   };
 }
 
-export function getCoursePurchasePayload(
+export function getCourseTrackingPayload(
   slug: string,
   title: string,
   price: number,
   categorySlug?: string
-): CoursePurchasePayload {
+): CourseTrackingPayload {
   return {
     ...getCourseMetaContent(slug, title, categorySlug),
     ...getCourseValuePayload(price)

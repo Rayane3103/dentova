@@ -5,7 +5,7 @@ import {
   getCourseMetaContent,
   getCourseValuePayload
 } from "@/lib/marketing/meta-course-tracking";
-import { trackMetaEvent } from "@/lib/marketing/track-meta-event";
+import { pushDataLayerEvent } from "@/lib/marketing/track-meta-event";
 
 type CourseViewContentTrackerProps = {
   slug: string;
@@ -21,13 +21,9 @@ export function CourseViewContentTracker({
   categorySlug
 }: CourseViewContentTrackerProps) {
   useEffect(() => {
-    const viewContentPayload = {
+    pushDataLayerEvent("dentova_course_page_view", {
       ...getCourseMetaContent(slug, title, categorySlug),
       ...getCourseValuePayload(price)
-    };
-
-    trackMetaEvent("ViewContent", viewContentPayload, {
-      dataLayerEvent: "dentova_view_content"
     });
   }, [categorySlug, price, slug, title]);
 
