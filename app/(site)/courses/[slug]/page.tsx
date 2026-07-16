@@ -11,6 +11,7 @@ import {
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { CoursePriceCard } from "@/components/public/CoursePriceCard";
 import { ReservationForm } from "@/components/forms/ReservationForm";
 import { CourseViewContentTracker } from "@/components/marketing/CourseViewContentTracker";
 import { ImageGallery } from "@/components/public/ImageGallery";
@@ -22,7 +23,7 @@ import {
   getActiveWorkshopImages,
   getCourseBySlug
 } from "@/lib/data/queries";
-import { formatCourseDate, formatMetaSelectablePrice, formatPrice } from "@/lib/format";
+import { formatCourseDate, formatPrice } from "@/lib/format";
 import { getYouTubeEmbedUrl } from "@/lib/youtube";
 
 export const dynamic = "force-dynamic";
@@ -264,19 +265,7 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
             {/* Right column — Form + sidebar cards */}
             <aside className="space-y-5 lg:sticky lg:top-24">
               {/* Price card */}
-              <Card className="overflow-hidden">
-                <div className="bg-dentova-graphite px-6 py-5 text-center text-white">
-                  <p className="text-sm font-semibold text-white/60">Prix de la formation</p>
-                  <p className="price mt-1 text-3xl font-extrabold">
-                    {formatMetaSelectablePrice(course.price)}
-                  </p>
-                  {course.maxSeats ? (
-                    <p className="mt-1.5 text-xs font-medium text-white/50">
-                      Places limitées — {course.maxSeats} participants maximum
-                    </p>
-                  ) : null}
-                </div>
-              </Card>
+              <CoursePriceCard maxSeats={course.maxSeats} price={course.price} />
 
               <ReservationForm course={course} />
 

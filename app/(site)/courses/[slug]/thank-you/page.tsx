@@ -9,12 +9,13 @@ import {
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ReservationConversionTracker } from "@/components/marketing/ReservationConversionTracker";
+import { CoursePriceCard } from "@/components/public/CoursePriceCard";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Container } from "@/components/ui/Container";
 import { getCourseBySlug } from "@/lib/data/queries";
-import { formatCourseDate, formatPrice } from "@/lib/format";
+import { formatCourseDate } from "@/lib/format";
 
 type ThankYouPageProps = {
   params: Promise<{
@@ -106,10 +107,9 @@ export default async function CourseThankYouPage({
               </div>
             </div>
 
-            <div className="mt-7 grid gap-3 sm:grid-cols-3">
+            <div className="mt-7 grid gap-3 sm:grid-cols-2">
               <InfoTile label="Date" value={formatCourseDate(course.date)} />
               <InfoTile label="Lieu" value={course.location} />
-              <InfoTile label="Prix" value={formatPrice(course.price)} />
             </div>
 
             <div className="mt-8 rounded-lg border border-dentova-ash bg-dentova-mint/40 p-5">
@@ -124,6 +124,8 @@ export default async function CourseThankYouPage({
           </Card>
 
           <aside className="space-y-4">
+            <CoursePriceCard maxSeats={course.maxSeats} price={course.price} />
+
             <Card className="p-5">
               <h2 className="text-sm font-extrabold uppercase tracking-wider text-dentova-muted">
                 Besoin de parler a l&apos;equipe ?
