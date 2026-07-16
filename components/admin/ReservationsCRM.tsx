@@ -6,11 +6,13 @@ import {
   ChevronRight,
   Loader,
   MapPin,
-  Search
+  Search,
+  Trash2
 } from "lucide-react";
 import { Fragment, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { adminLabelClassName } from "@/components/admin/admin-ui";
+import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -80,6 +82,8 @@ export function ReservationsCRM({
   const [statusFilter, setStatusFilter] = useState<"all" | ReservationStatus>("all");
   const [savingId, setSavingId] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, ReservationRecord>>({});
+  const [pendingDelete, setPendingDelete] = useState<ReservationRecord | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const filteredRows = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -170,6 +174,32 @@ export function ReservationsCRM({
     }));
   };
 
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+
+    setDeleteLoading(true);
+    try {
+      const response = await fetch(`/api/admin/reservations/${pendingDelete.id}`, {
+        method: "DELETE"
+      });
+      if (!response.ok) throw new Error("Delete failed");
+
+      setRows((current) => current.filter((row) => row.id !== pendingDelete.id));
+      setDrafts((current) => {
+        const next = { ...current };
+        delete next[pendingDelete.id];
+        return next;
+      });
+      if (expandedId === pendingDelete.id) setExpandedId(null);
+      toast.success("Réservation supprimée.");
+    } catch {
+      toast.error("Suppression impossible.");
+    } finally {
+      setDeleteLoading(false);
+      setPendingDelete(null);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Filters Bar */}
@@ -249,6 +279,7 @@ export function ReservationsCRM({
                   <th className="px-3 py-3">Prix</th>
                   <th className="px-3 py-3">Statut</th>
                   <th className="px-3 py-3">Date</th>
+                  <th className="w-10 px-3 py-3" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -333,12 +364,28 @@ export function ReservationsCRM({
                         <td className="px-3 py-3 text-xs text-slate-400">
                           {formatDate(row.createdAt)}
                         </td>
+                        <td className="px-3 py-3">
+                          <button
+                            aria-label={`Supprimer ${row.fullName}`}
+                            className={cn(
+                              "dentova-focus inline-flex h-7 w-7 items-center justify-center rounded-lg border border-transparent text-slate-400 transition",
+                              "opacity-100 sm:opacity-0 sm:group-hover:opacity-100",
+                              "hover:border-red-200 hover:bg-red-50 hover:text-red-500"
+                            )}
+                            disabled={isSaving}
+                            onClick={() => setPendingDelete(row)}
+                            title="Supprimer"
+                            type="button"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </td>
                       </tr>
 
                       {/* Expanded Detail Row */}
                       {expanded && (
                         <tr className="border-b border-slate-100 bg-slate-50/30">
-                          <td className="px-3 py-0" colSpan={7}>
+                          <td className="px-3 py-0" colSpan={8}>
                             <div className="py-5 pl-10 pr-4">
                               <div className="mb-5 flex items-center justify-between gap-4">
                                 <div>
@@ -452,7 +499,7 @@ export function ReservationsCRM({
                                 </label>
                               </div>
 
-                              <div className="mt-5 flex flex-wrap gap-2">
+                              <div className="mt-5 flex flex-wrap items-center gap-2">
                                 <Button
                                   disabled={isSaving}
                                   onClick={() =>
@@ -488,6 +535,15 @@ export function ReservationsCRM({
                                 >
                                   Réinitialiser
                                 </Button>
+                                <button
+                                  className="dentova-focus ml-auto inline-flex h-8 items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                                  disabled={isSaving || deleteLoading}
+                                  onClick={() => setPendingDelete(row)}
+                                  type="button"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                  Supprimer
+                                </button>
                               </div>
                             </div>
                           </td>
@@ -501,6 +557,20 @@ export function ReservationsCRM({
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        confirmLabel="Supprimer"
+        description={
+          pendingDelete
+            ? `La réservation de ${pendingDelete.fullName} pour « ${pendingDelete.courseTitle} » sera définitivement supprimée.`
+            : "Cette action est irréversible."
+        }
+        loading={deleteLoading}
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+        open={pendingDelete !== null}
+        title="Supprimer cette réservation ?"
+      />
     </div>
   );
 }
