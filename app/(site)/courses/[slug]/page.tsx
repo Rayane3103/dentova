@@ -271,8 +271,10 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
                   <p
                     className="price mt-1 text-3xl font-extrabold"
                     data-currency="DZD"
+                    data-currency-dzd="DZD"
                     data-currency-usd="USD"
                     data-value={course.price.toFixed(2)}
+                    data-value-dzd={course.price.toFixed(2)}
                     data-value-usd={convertDzdPriceToUsd(course.price).toFixed(2)}
                   >
                     {formatPrice(course.price)}
