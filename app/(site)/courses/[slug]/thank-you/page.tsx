@@ -9,6 +9,7 @@ import {
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ReservationConversionTracker } from "@/components/marketing/ReservationConversionTracker";
+import { CourseViewContentTracker } from "@/components/marketing/CourseViewContentTracker";
 import { CoursePriceCard } from "@/components/public/CoursePriceCard";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -56,6 +57,13 @@ export default async function CourseThankYouPage({
 
   return (
     <main className="min-h-screen bg-dentova-canvas">
+      <CourseViewContentTracker
+        categorySlug={course.category?.slug}
+        page="thank-you"
+        price={course.price}
+        slug={course.slug}
+        title={course.title}
+      />
       <ReservationConversionTracker
         categorySlug={course.category?.slug}
         courseName={course.title}
