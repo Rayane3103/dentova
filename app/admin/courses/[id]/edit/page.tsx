@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { CourseForm } from "@/components/admin/CourseForm";
+import { serializeCourseQuestions } from "@/lib/data/serialize";
 import { getCourseAdminRecord } from "@/lib/data/queries";
 
 type EditCoursePageProps = {
@@ -48,6 +49,7 @@ export default async function EditCoursePage({ params }: EditCoursePageProps) {
             maxSeats: course.maxSeats ? Number(course.maxSeats) : undefined,
             price: Number(course.price),
             published: Boolean(course.published),
+            questions: serializeCourseQuestions(course.questions),
             showOnHomepage: Boolean(course.showOnHomepage),
             subtitle: course.subtitle ? String(course.subtitle) : "",
             time: course.time ? String(course.time) : "",

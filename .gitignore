@@ -13,3 +13,7 @@ pnpm-debug.log*
 
 # Design assets
 design_assets/
+
+# Google service-account credentials (secret — never commit)
+dentova-*.json
+*service-account*.json

@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { connectToDatabase, hasDatabaseConfig } from "@/lib/db/connect";
+import { syncReservationsSheet } from "@/lib/integrations/reservations-sheet";
 import { Reservation } from "@/models/Reservation";
 
 export const runtime = "nodejs";
@@ -27,6 +28,8 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
 
   revalidatePath("/admin/reservations");
   revalidatePath("/admin/signups");
+
+  after(() => syncReservationsSheet());
 
   return NextResponse.json({ ok: true });
 }

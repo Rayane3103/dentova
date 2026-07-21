@@ -1,5 +1,15 @@
 import mongoose, { Schema } from "mongoose";
 
+const ReservationAnswerSchema = new Schema(
+  {
+    questionId: { type: String, required: true },
+    label: { type: String, required: true },
+    type: { type: String, enum: ["text", "select"], default: "text" },
+    value: { type: [String], default: [] }
+  },
+  { _id: false }
+);
+
 const ReservationSchema = new Schema(
   {
     courseId: { type: Schema.Types.ObjectId, ref: "Course", required: true },
@@ -11,8 +21,9 @@ const ReservationSchema = new Schema(
     status: {
       type: String,
       default: "pending",
-      enum: ["pending", "confirmed", "cancelled"]
+      enum: ["pending", "confirmed", "paid", "cancelled"]
     },
+    answers: { type: [ReservationAnswerSchema], default: [] },
     wilaya: { type: String, required: true, trim: true }
   },
   { timestamps: true }

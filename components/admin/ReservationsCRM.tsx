@@ -3,28 +3,39 @@
 import {
   Calendar,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   Loader,
   MapPin,
+  MessageSquare,
   Search,
-  Trash2
+  Trash2,
+  X
 } from "lucide-react";
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { adminLabelClassName } from "@/components/admin/admin-ui";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
+import { ExportMenu } from "@/components/admin/ExportMenu";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
+import type { ReservationStatusCounts } from "@/lib/data/reservation-record";
+import type { ExportColumn } from "@/lib/export/table-export";
 import { cn } from "@/lib/utils";
+import type { ReservationAnswer } from "@/types";
 
-export type ReservationStatus = "pending" | "confirmed" | "cancelled";
+export type ReservationStatus = "pending" | "confirmed" | "paid" | "cancelled";
 
 export type ReservationCourse = {
   id: string;
   title: string;
   price: number;
+  date?: string;
+  time?: string;
+  location?: string;
 };
 
 export type ReservationRecord = {
@@ -32,6 +43,9 @@ export type ReservationRecord = {
   courseId: string;
   courseTitle: string;
   coursePrice?: number;
+  courseDate?: string;
+  courseTime?: string;
+  courseLocation?: string;
   createdAt: string;
   email: string;
   fullName: string;
@@ -39,6 +53,7 @@ export type ReservationRecord = {
   phone: string;
   profession?: string;
   status: ReservationStatus;
+  answers: ReservationAnswer[];
   updatedAt?: string;
   wilaya: string;
 };
@@ -46,8 +61,23 @@ export type ReservationRecord = {
 const statusOptions = [
   { value: "pending", label: "En attente" },
   { value: "confirmed", label: "Confirmée" },
+  { value: "paid", label: "Payé" },
   { value: "cancelled", label: "Annulée" }
 ];
+
+const statusSelectStyles: Record<ReservationStatus, string> = {
+  pending: "border-amber-200 bg-amber-50 text-amber-700",
+  confirmed: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  paid: "border-sky-200 bg-sky-50 text-sky-700",
+  cancelled: "border-red-200 bg-red-50 text-red-600"
+};
+
+const statusLabels: Record<ReservationStatus, string> = {
+  pending: "En attente",
+  confirmed: "Confirmée",
+  paid: "Payé",
+  cancelled: "Annulée"
+};
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("fr-FR", {
@@ -58,6 +88,46 @@ function formatDate(value: string) {
     minute: "2-digit"
   }).format(new Date(value));
 }
+
+function formatDayOnly(value: string | undefined) {
+  if (!value) return "";
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  }).format(new Date(value));
+}
+
+function answersToText(answers: ReservationAnswer[]) {
+  return answers
+    .map((answer) => `${answer.label}: ${answer.value.join(", ")}`)
+    .join(" | ");
+}
+
+const reservationExportColumns: ExportColumn<ReservationRecord>[] = [
+  { header: "Nom complet", value: (row) => row.fullName, width: 24 },
+  { header: "Email", value: (row) => row.email, width: 26 },
+  { header: "Téléphone", value: (row) => row.phone, width: 16 },
+  { header: "Wilaya", value: (row) => row.wilaya, width: 16 },
+  { header: "Profession", value: (row) => row.profession ?? "", width: 18 },
+  { header: "Formation", value: (row) => row.courseTitle, width: 28 },
+  { header: "Date événement", value: (row) => formatDayOnly(row.courseDate), width: 16 },
+  { header: "Heure", value: (row) => row.courseTime ?? "", width: 10 },
+  { header: "Lieu", value: (row) => row.courseLocation ?? "", width: 16 },
+  {
+    header: "Prix (DZD)",
+    value: (row) => (row.coursePrice != null ? row.coursePrice : ""),
+    width: 12
+  },
+  { header: "Statut", value: (row) => statusLabels[row.status], width: 14 },
+  { header: "Réponses", value: (row) => answersToText(row.answers), width: 40 },
+  { header: "Message", value: (row) => row.message ?? "", width: 30 },
+  {
+    header: "Date réservation",
+    value: (row) => formatDayOnly(row.createdAt),
+    width: 16
+  }
+];
 
 function formatPrice(price: number | undefined) {
   if (price == null) return "—";
@@ -70,45 +140,105 @@ function formatPrice(price: number | undefined) {
 
 export function ReservationsCRM({
   courses,
-  initialReservations
+  initialReservations,
+  initialTotal,
+  initialCounts,
+  pageSize
 }: {
   courses: ReservationCourse[];
   initialReservations: ReservationRecord[];
+  initialTotal: number;
+  initialCounts: ReservationStatusCounts;
+  pageSize: number;
 }) {
   const [rows, setRows] = useState(initialReservations);
+  const [total, setTotal] = useState(initialTotal);
+  const [counts, setCounts] = useState<ReservationStatusCounts>(initialCounts);
+  const [pages, setPages] = useState(Math.max(1, Math.ceil(initialTotal / pageSize)));
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [courseFilter, setCourseFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState<"all" | ReservationStatus>("all");
   const [savingId, setSavingId] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, ReservationRecord>>({});
   const [pendingDelete, setPendingDelete] = useState<ReservationRecord | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState<ReservationStatus | "">("");
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const filteredRows = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    return rows.filter((row) => {
-      const matchesCourse = courseFilter === "all" || row.courseId === courseFilter;
-      const matchesStatus = statusFilter === "all" || row.status === statusFilter;
-      const matchesSearch =
-        !query ||
-        row.fullName.toLowerCase().includes(query) ||
-        row.phone.toLowerCase().includes(query) ||
-        row.email.toLowerCase().includes(query) ||
-        row.courseTitle.toLowerCase().includes(query);
-      return matchesCourse && matchesStatus && matchesSearch;
-    });
-  }, [courseFilter, rows, search, statusFilter]);
+  const firstRender = useRef(true);
+  const requestId = useRef(0);
 
-  const counts = useMemo(
-    () => ({
-      all: rows.length,
-      pending: rows.filter((row) => row.status === "pending").length,
-      confirmed: rows.filter((row) => row.status === "confirmed").length,
-      cancelled: rows.filter((row) => row.status === "cancelled").length
-    }),
-    [rows]
-  );
+  const buildParams = (extra?: Record<string, string>) => {
+    const params = new URLSearchParams();
+    if (debouncedSearch) params.set("q", debouncedSearch);
+    if (statusFilter !== "all") params.set("status", statusFilter);
+    if (courseFilter !== "all") params.set("courseId", courseFilter);
+    for (const [key, value] of Object.entries(extra ?? {})) {
+      params.set(key, value);
+    }
+    return params;
+  };
+
+  const reload = () => setRefreshKey((key) => key + 1);
+
+  // Debounce the search box; reset to the first page when it changes.
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 350);
+    return () => clearTimeout(timeout);
+  }, [search]);
+
+  // Fetch the current page whenever filters, page, or a manual refresh change.
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+
+    const id = ++requestId.current;
+    setLoading(true);
+
+    const params = buildParams({ page: String(page), limit: String(pageSize) });
+
+    fetch(`/api/admin/reservations?${params.toString()}`)
+      .then((response) => {
+        if (!response.ok) throw new Error("load failed");
+        return response.json();
+      })
+      .then((data: {
+        reservations: ReservationRecord[];
+        total: number;
+        pages: number;
+        counts: ReservationStatusCounts;
+      }) => {
+        if (id !== requestId.current) return;
+        setRows(data.reservations);
+        setTotal(data.total);
+        setPages(data.pages);
+        setCounts(data.counts);
+        setSelectedIds((prev) => {
+          const ids = new Set(data.reservations.map((row) => row.id));
+          return new Set([...prev].filter((selected) => ids.has(selected)));
+        });
+      })
+      .catch(() => {
+        if (id === requestId.current) toast.error("Chargement impossible.");
+      })
+      .finally(() => {
+        if (id === requestId.current) setLoading(false);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, debouncedSearch, statusFilter, courseFilter, refreshKey, pageSize]);
 
   const getDraft = (row: ReservationRecord) => drafts[row.id] ?? row;
 
@@ -126,38 +256,12 @@ export function ReservationsCRM({
       });
       if (!response.ok) throw new Error("Update failed");
 
-      const data = (await response.json()) as {
-        reservation: Record<string, unknown> & {
-          courseId?: Record<string, unknown> | string;
-        };
-      };
-      const course = data.reservation.courseId as Record<string, unknown> | null;
-      const existing = rows.find((row) => row.id === id);
-
-      const updated: ReservationRecord = {
-        id: String(data.reservation._id),
-        courseId: course?._id ? String(course._id) : patch.courseId || existing?.courseId || "",
-        courseTitle: course?.title
-          ? String(course.title)
-          : existing?.courseTitle || "Formation non renseignée",
-        coursePrice: course?.price ? Number(course.price) : existing?.coursePrice,
-        createdAt: String(data.reservation.createdAt),
-        email: String(data.reservation.email),
-        fullName: String(data.reservation.fullName),
-        message: data.reservation.message ? String(data.reservation.message) : undefined,
-        phone: String(data.reservation.phone),
-        profession: data.reservation.profession ? String(data.reservation.profession) : undefined,
-        status: data.reservation.status as ReservationStatus,
-        updatedAt: data.reservation.updatedAt ? String(data.reservation.updatedAt) : undefined,
-        wilaya: String(data.reservation.wilaya)
-      };
-
-      setRows((current) => current.map((row) => (row.id === id ? updated : row)));
       setDrafts((current) => {
         const next = { ...current };
         delete next[id];
         return next;
       });
+      reload();
 
       if (!options?.silent) toast.success("Réservation mise à jour.");
     } catch {
@@ -184,13 +288,8 @@ export function ReservationsCRM({
       });
       if (!response.ok) throw new Error("Delete failed");
 
-      setRows((current) => current.filter((row) => row.id !== pendingDelete.id));
-      setDrafts((current) => {
-        const next = { ...current };
-        delete next[pendingDelete.id];
-        return next;
-      });
       if (expandedId === pendingDelete.id) setExpandedId(null);
+      reload();
       toast.success("Réservation supprimée.");
     } catch {
       toast.error("Suppression impossible.");
@@ -198,6 +297,99 @@ export function ReservationsCRM({
       setDeleteLoading(false);
       setPendingDelete(null);
     }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const allOnPageSelected =
+    rows.length > 0 && rows.every((row) => selectedIds.has(row.id));
+
+  const toggleSelectAll = () => {
+    setSelectedIds((current) => {
+      if (rows.every((row) => current.has(row.id))) {
+        const next = new Set(current);
+        rows.forEach((row) => next.delete(row.id));
+        return next;
+      }
+      const next = new Set(current);
+      rows.forEach((row) => next.add(row.id));
+      return next;
+    });
+  };
+
+  const selectedRows = rows.filter((row) => selectedIds.has(row.id));
+
+  const applyBulkStatus = async () => {
+    if (!bulkStatus || selectedIds.size === 0) return;
+    setBulkBusy(true);
+    try {
+      const results = await Promise.allSettled(
+        [...selectedIds].map((id) =>
+          fetch("/api/admin/reservations", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id, status: bulkStatus })
+          }).then((response) => {
+            if (!response.ok) throw new Error("bulk status failed");
+          })
+        )
+      );
+      const failed = results.filter((result) => result.status === "rejected").length;
+      if (failed > 0) {
+        toast.error(`${failed} réservation(s) non mises à jour.`);
+      } else {
+        toast.success("Statut mis à jour pour la sélection.");
+      }
+      setBulkStatus("");
+      reload();
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const applyBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkBusy(true);
+    try {
+      const results = await Promise.allSettled(
+        [...selectedIds].map((id) =>
+          fetch(`/api/admin/reservations/${id}`, { method: "DELETE" }).then(
+            (response) => {
+              if (!response.ok) throw new Error("bulk delete failed");
+            }
+          )
+        )
+      );
+      const failed = results.filter((result) => result.status === "rejected").length;
+      if (failed > 0) {
+        toast.error(`${failed} réservation(s) non supprimée(s).`);
+      } else {
+        toast.success("Sélection supprimée.");
+      }
+      setExpandedId(null);
+      reload();
+    } finally {
+      setBulkBusy(false);
+      setConfirmBulkDelete(false);
+    }
+  };
+
+  const resolveAllRows = async () => {
+    const params = buildParams({ all: "1" });
+    const response = await fetch(`/api/admin/reservations?${params.toString()}`);
+    if (!response.ok) throw new Error("export load failed");
+    const data = (await response.json()) as { reservations: ReservationRecord[] };
+    return data.reservations;
   };
 
   return (
@@ -217,7 +409,10 @@ export function ReservationsCRM({
         <div className="flex gap-3">
           <Select
             className="w-44"
-            onChange={(event) => setCourseFilter(event.target.value)}
+            onChange={(event) => {
+              setCourseFilter(event.target.value);
+              setPage(1);
+            }}
             size="sm"
             value={courseFilter}
           >
@@ -230,19 +425,90 @@ export function ReservationsCRM({
           </Select>
           <Select
             className="w-44"
-            onChange={(event) =>
-              setStatusFilter(event.target.value as "all" | ReservationStatus)
-            }
+            onChange={(event) => {
+              setStatusFilter(event.target.value as "all" | ReservationStatus);
+              setPage(1);
+            }}
             size="sm"
             value={statusFilter}
           >
             <option value="all">Tous ({counts.all})</option>
             <option value="pending">En attente ({counts.pending})</option>
             <option value="confirmed">Confirmées ({counts.confirmed})</option>
+            <option value="paid">Payé ({counts.paid})</option>
             <option value="cancelled">Annulées ({counts.cancelled})</option>
           </Select>
+          <ExportMenu
+            columns={reservationExportColumns}
+            countLabel={`${total} au total`}
+            filename="dentova-reservations"
+            resolveRows={resolveAllRows}
+            rows={rows}
+            title="Réservations"
+          />
         </div>
       </div>
+
+      {/* Bulk toolbar */}
+      {selectedIds.size > 0 ? (
+        <div className="flex flex-col gap-3 rounded-xl border border-dentova-navy/20 bg-dentova-navy/5 p-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2">
+            <button
+              aria-label="Effacer la sélection"
+              className="dentova-focus inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:text-slate-700"
+              onClick={() => setSelectedIds(new Set())}
+              type="button"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <span className="text-sm font-bold text-dentova-navy">
+              {selectedIds.size} sélectionnée{selectedIds.size !== 1 ? "s" : ""}
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Select
+              className="w-40"
+              disabled={bulkBusy}
+              onChange={(event) =>
+                setBulkStatus(event.target.value as ReservationStatus | "")
+              }
+              size="sm"
+              value={bulkStatus}
+            >
+              <option value="">Changer le statut…</option>
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </Select>
+            <Button
+              disabled={!bulkStatus || bulkBusy}
+              onClick={() => void applyBulkStatus()}
+              size="sm"
+              type="button"
+            >
+              {bulkBusy ? <Loader className="h-3.5 w-3.5 animate-spin" /> : null}
+              Appliquer
+            </Button>
+            <ExportMenu
+              columns={reservationExportColumns}
+              filename="dentova-reservations-selection"
+              rows={selectedRows}
+              title="Réservations (sélection)"
+            />
+            <button
+              className="dentova-focus inline-flex h-9 items-center gap-1.5 rounded-lg border border-red-200 bg-white px-3 text-xs font-bold text-red-600 transition hover:bg-red-50 disabled:opacity-60"
+              disabled={bulkBusy}
+              onClick={() => setConfirmBulkDelete(true)}
+              type="button"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Supprimer
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {/* Table */}
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -250,12 +516,13 @@ export function ReservationsCRM({
           <div>
             <h2 className="text-sm font-bold text-slate-800">Liste des réservations</h2>
             <p className="text-xs text-slate-400">
-              {filteredRows.length} réservation{filteredRows.length !== 1 ? "s" : ""}
+              {total} réservation{total !== 1 ? "s" : ""}
+              {loading ? " · chargement…" : ""}
             </p>
           </div>
         </div>
 
-        {filteredRows.length === 0 ? (
+        {rows.length === 0 ? (
           <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
               <Search className="h-5 w-5 text-slate-400" />
@@ -268,10 +535,17 @@ export function ReservationsCRM({
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className={cn("overflow-x-auto transition", loading && "opacity-60")}>
             <table className="w-full min-w-[1000px] border-collapse text-left">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50/80 text-[11px] font-bold uppercase tracking-[0.06em] text-slate-500">
+                  <th className="w-10 px-3 py-3">
+                    <Checkbox
+                      aria-label="Tout sélectionner"
+                      checked={allOnPageSelected}
+                      onChange={toggleSelectAll}
+                    />
+                  </th>
                   <th className="w-10 px-3 py-3" />
                   <th className="px-3 py-3">Client</th>
                   <th className="px-3 py-3">Contact</th>
@@ -283,19 +557,27 @@ export function ReservationsCRM({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {filteredRows.map((row) => {
+                {rows.map((row) => {
                   const expanded = expandedId === row.id;
                   const draft = getDraft(row);
                   const isSaving = savingId === row.id;
+                  const isSelected = selectedIds.has(row.id);
 
                   return (
                     <Fragment key={row.id}>
                       <tr
                         className={cn(
                           "group transition hover:bg-slate-50/70",
-                          expanded && "bg-slate-50/70"
+                          (expanded || isSelected) && "bg-slate-50/70"
                         )}
                       >
+                        <td className="px-3 py-3">
+                          <Checkbox
+                            aria-label={`Sélectionner ${row.fullName}`}
+                            checked={isSelected}
+                            onChange={() => toggleSelect(row.id)}
+                          />
+                        </td>
                         <td className="px-3 py-3">
                           <button
                             aria-expanded={expanded}
@@ -339,12 +621,7 @@ export function ReservationsCRM({
                           <select
                             className={cn(
                               "dentova-focus h-8 min-w-[130px] rounded-lg border px-2.5 text-xs font-bold uppercase tracking-wide transition",
-                              row.status === "pending" &&
-                                "border-amber-200 bg-amber-50 text-amber-700",
-                              row.status === "confirmed" &&
-                                "border-emerald-200 bg-emerald-50 text-emerald-700",
-                              row.status === "cancelled" &&
-                                "border-red-200 bg-red-50 text-red-600"
+                              statusSelectStyles[row.status]
                             )}
                             disabled={isSaving}
                             onChange={(event) =>
@@ -385,7 +662,7 @@ export function ReservationsCRM({
                       {/* Expanded Detail Row */}
                       {expanded && (
                         <tr className="border-b border-slate-100 bg-slate-50/30">
-                          <td className="px-3 py-0" colSpan={8}>
+                          <td className="px-3 py-0" colSpan={9}>
                             <div className="py-5 pl-10 pr-4">
                               <div className="mb-5 flex items-center justify-between gap-4">
                                 <div>
@@ -474,7 +751,11 @@ export function ReservationsCRM({
                                       updateDraft(row.id, {
                                         courseId: event.target.value,
                                         courseTitle: course?.title || draft.courseTitle,
-                                        coursePrice: course?.price ?? draft.coursePrice
+                                        coursePrice: course?.price ?? draft.coursePrice,
+                                        courseDate: course?.date ?? draft.courseDate,
+                                        courseTime: course?.time ?? draft.courseTime,
+                                        courseLocation:
+                                          course?.location ?? draft.courseLocation
                                       });
                                     }}
                                     size="sm"
@@ -498,6 +779,29 @@ export function ReservationsCRM({
                                   />
                                 </label>
                               </div>
+
+                              {row.answers.length > 0 ? (
+                                <div className="mt-5 rounded-lg border border-dentova-teal/30 bg-dentova-mint/30 p-4">
+                                  <p className="mb-3 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-dentova-navy">
+                                    <MessageSquare className="h-3.5 w-3.5" />
+                                    Réponses au questionnaire
+                                  </p>
+                                  <dl className="grid gap-3 sm:grid-cols-2">
+                                    {row.answers.map((answer) => (
+                                      <div key={answer.questionId}>
+                                        <dt className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                                          {answer.label}
+                                        </dt>
+                                        <dd className="mt-0.5 text-sm font-medium text-slate-800">
+                                          {answer.value.length > 0
+                                            ? answer.value.join(", ")
+                                            : "—"}
+                                        </dd>
+                                      </div>
+                                    ))}
+                                  </dl>
+                                </div>
+                              ) : null}
 
                               <div className="mt-5 flex flex-wrap items-center gap-2">
                                 <Button
@@ -556,6 +860,34 @@ export function ReservationsCRM({
             </table>
           </div>
         )}
+
+        {pages > 1 ? (
+          <div className="flex items-center justify-between gap-3 border-t border-slate-100 px-4 py-3">
+            <p className="text-xs text-slate-400">
+              Page {page} sur {pages}
+            </p>
+            <div className="flex items-center gap-1.5">
+              <button
+                aria-label="Page précédente"
+                className="dentova-focus inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                disabled={page <= 1 || loading}
+                onClick={() => setPage((current) => Math.max(1, current - 1))}
+                type="button"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                aria-label="Page suivante"
+                className="dentova-focus inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                disabled={page >= pages || loading}
+                onClick={() => setPage((current) => Math.min(pages, current + 1))}
+                type="button"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <ConfirmDialog
@@ -570,6 +902,16 @@ export function ReservationsCRM({
         onConfirm={confirmDelete}
         open={pendingDelete !== null}
         title="Supprimer cette réservation ?"
+      />
+
+      <ConfirmDialog
+        confirmLabel="Supprimer"
+        description={`${selectedIds.size} réservation(s) seront définitivement supprimées. Cette action est irréversible.`}
+        loading={bulkBusy}
+        onCancel={() => setConfirmBulkDelete(false)}
+        onConfirm={applyBulkDelete}
+        open={confirmBulkDelete}
+        title="Supprimer la sélection ?"
       />
     </div>
   );

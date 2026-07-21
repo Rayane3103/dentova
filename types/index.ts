@@ -12,6 +12,15 @@ export type Category = {
   sortOrder?: number;
 };
 
+export type CourseQuestion = {
+  id: string;
+  label: string;
+  type: "text" | "select";
+  required: boolean;
+  options: string[];
+  allowMultiple: boolean;
+};
+
 export type Course = CourseStatus & {
   id: string;
   title: string;
@@ -33,6 +42,16 @@ export type Course = CourseStatus & {
   imagePublicId?: string;
   maxSeats?: number;
   youtubeUrl?: string;
+  questions: CourseQuestion[];
+};
+
+export type ReservationStatus = "pending" | "confirmed" | "paid" | "cancelled";
+
+export type ReservationAnswer = {
+  questionId: string;
+  label: string;
+  type: "text" | "select";
+  value: string[];
 };
 
 export type WorkshopImage = {

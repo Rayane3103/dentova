@@ -1,5 +1,17 @@
 import mongoose, { Schema } from "mongoose";
 
+const CourseQuestionSchema = new Schema(
+  {
+    id: { type: String, required: true },
+    label: { type: String, required: true, trim: true },
+    type: { type: String, enum: ["text", "select"], default: "text", required: true },
+    required: { type: Boolean, default: false },
+    options: { type: [String], default: [] },
+    allowMultiple: { type: Boolean, default: false }
+  },
+  { _id: false }
+);
+
 const CourseSchema = new Schema(
   {
     categoryId: { type: Schema.Types.ObjectId, ref: "Category", required: true },
@@ -22,6 +34,7 @@ const CourseSchema = new Schema(
     location: { type: String, required: true, trim: true },
     maxSeats: { type: Number },
     price: { type: Number, required: true },
+    questions: { type: [CourseQuestionSchema], default: [] },
     published: { type: Boolean, default: true },
     showOnHomepage: { type: Boolean, default: true },
     slug: { type: String, required: true, unique: true, trim: true },

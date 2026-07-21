@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-export const reservationStatusSchema = z.enum(["pending", "confirmed", "cancelled"]);
+export const reservationStatusSchema = z.enum([
+  "pending",
+  "confirmed",
+  "paid",
+  "cancelled"
+]);
 
 export const adminReservationUpdateSchema = z.object({
   id: z.string().min(1),

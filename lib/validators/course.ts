@@ -11,6 +11,25 @@ const imageUrlSchema = z
 
 const courseTypeSchema = z.enum(["formation", "cycle"]);
 
+export const courseQuestionSchema = z
+  .object({
+    id: z.string().min(1),
+    label: z.string().trim().min(1, "L'intitulé de la question est requis."),
+    type: z.enum(["text", "select"]).default("text"),
+    required: z.coerce.boolean().default(false),
+    options: z.array(z.string().trim().min(1)).default([]),
+    allowMultiple: z.coerce.boolean().default(false)
+  })
+  .superRefine((question, ctx) => {
+    if (question.type === "select" && question.options.length < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Ajoutez au moins une option pour une question à choix.",
+        path: ["options"]
+      });
+    }
+  });
+
 const youtubeUrlSchema = z.string().trim().optional().refine(
   (value) => !value || Boolean(getYouTubeVideoId(value)),
   "YouTube link must be a valid YouTube video URL."
@@ -36,6 +55,7 @@ const baseCourseSchema = z.object({
   location: z.string().min(2, "Location is required."),
   maxSeats: z.coerce.number().int().positive().optional(),
   price: z.coerce.number().min(0),
+  questions: z.array(courseQuestionSchema).default([]),
   published: z.coerce.boolean().default(true),
   showOnHomepage: z.coerce.boolean().default(true),
   subtitle: z.string().optional(),

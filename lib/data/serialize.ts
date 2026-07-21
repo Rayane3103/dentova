@@ -2,14 +2,61 @@ import type {
   BlogPost,
   Category,
   Course,
+  CourseQuestion,
   FAQItem,
   Mentor,
+  ReservationAnswer,
   Sponsor,
   Testimonial,
   WorkshopImage
 } from "@/types";
 
 type MongoDoc = Record<string, unknown>;
+
+export function serializeCourseQuestions(value: unknown): CourseQuestion[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.map((raw) => {
+    const question = raw as MongoDoc;
+    const type = question.type === "select" ? "select" : "text";
+
+    return {
+      id: String(question.id),
+      label: String(question.label),
+      type,
+      required: Boolean(question.required),
+      options: Array.isArray(question.options)
+        ? question.options.map((option) => String(option))
+        : [],
+      allowMultiple: Boolean(question.allowMultiple)
+    };
+  });
+}
+
+export function serializeReservationAnswers(value: unknown): ReservationAnswer[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.map((raw) => {
+    const answer = raw as MongoDoc;
+    const type = answer.type === "select" ? "select" : "text";
+    const rawValue = answer.value;
+
+    return {
+      questionId: String(answer.questionId),
+      label: String(answer.label),
+      type,
+      value: Array.isArray(rawValue)
+        ? rawValue.map((item) => String(item))
+        : rawValue != null && rawValue !== ""
+          ? [String(rawValue)]
+          : []
+    };
+  });
+}
 
 export function serializeCategory(doc: MongoDoc): Category {
   return {
@@ -64,7 +111,8 @@ export function serializeCourse(doc: MongoDoc, category: Category): Course {
     showOnHomepage: Boolean(doc.showOnHomepage),
     published: Boolean(doc.published),
     maxSeats: doc.maxSeats ? Number(doc.maxSeats) : undefined,
-    youtubeUrl: doc.youtubeUrl ? String(doc.youtubeUrl) : undefined
+    youtubeUrl: doc.youtubeUrl ? String(doc.youtubeUrl) : undefined,
+    questions: serializeCourseQuestions(doc.questions)
   };
 }
 

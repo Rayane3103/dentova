@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { type FieldErrors, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
+import { CourseQuestionsBuilder } from "@/components/admin/CourseQuestionsBuilder";
 import { ImageUploadField } from "@/components/admin/ImageUploadField";
 import { adminFormClassName, adminLabelClassName } from "@/components/admin/admin-ui";
 import { Button } from "@/components/ui/Button";
@@ -16,7 +17,7 @@ import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { siteConfig } from "@/lib/constants";
 import { courseSchema } from "@/lib/validators/course";
-import type { Category, Mentor } from "@/types";
+import type { Category, CourseQuestion, Mentor } from "@/types";
 
 type CourseFormValues = z.infer<typeof courseSchema>;
 
@@ -82,6 +83,7 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
       maxSeats: initialValues?.maxSeats,
       price: initialValues?.price ?? 0,
       published: initialValues?.published ?? true,
+      questions: initialValues?.questions ?? [],
       showOnHomepage: initialValues?.showOnHomepage ?? true,
       subtitle: initialValues?.subtitle || "",
       time: initialValues?.time || "10:00",
@@ -94,6 +96,7 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
   const imageUrl = watch("imageUrl");
   const imagePublicId = watch("imagePublicId");
   const instructor = watch("instructor");
+  const questions = (watch("questions") ?? []) as CourseQuestion[];
   const courseType = watch("courseType");
   const isCycle = courseType === "cycle";
   const selectedMentorValue = mentors.some((mentor) => mentor.name === instructor)
@@ -163,13 +166,25 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
   const onSubmit = async (values: CourseFormValues) => {
     const filledCycleDates = cycleDateValues.filter(Boolean);
     const isCycleSubmission = values.courseType === "cycle";
+    const cleanedQuestions = ((values.questions ?? []) as CourseQuestion[])
+      .map((question) => ({
+        ...question,
+        label: question.label.trim(),
+        options:
+          question.type === "select"
+            ? question.options.map((option) => option.trim()).filter(Boolean)
+            : [],
+        allowMultiple: question.type === "select" ? question.allowMultiple : false
+      }))
+      .filter((question) => question.label.length > 0);
     const payload = {
       ...values,
       cycleDates: isCycleSubmission ? filledCycleDates : [],
       date: isCycleSubmission
         ? filledCycleDates[0]
         : toDateInputValue(values.date),
-      maxSeats: Number.isFinite(values.maxSeats) ? values.maxSeats : undefined
+      maxSeats: Number.isFinite(values.maxSeats) ? values.maxSeats : undefined,
+      questions: cleanedQuestions
     };
 
     const response = await fetch(
@@ -391,6 +406,13 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
           })}
         />
       </label>
+
+      <CourseQuestionsBuilder
+        onChange={(next) =>
+          setValue("questions", next, { shouldDirty: true, shouldValidate: true })
+        }
+        value={questions}
+      />
 
       <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-4">
         <p className="mb-3 text-xs font-semibold uppercase tracking-[0.06em] text-slate-500">

@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
+import { ExportMenu } from "@/components/admin/ExportMenu";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import type { ExportColumn } from "@/lib/export/table-export";
 import { cn } from "@/lib/utils";
 
 export type SignupEntry = {
@@ -21,6 +23,46 @@ export type SignupEntry = {
   status: string;
   createdAt?: string;
 };
+
+const statusLabels: Record<string, string> = {
+  new: "Nouveau",
+  contacted: "Contacté",
+  archived: "Archivé",
+  pending: "En attente",
+  confirmed: "Confirmée",
+  paid: "Payé",
+  cancelled: "Annulée"
+};
+
+function formatDayOnly(value: string | undefined) {
+  if (!value) return "";
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  }).format(new Date(value));
+}
+
+const signupExportColumns: ExportColumn<SignupEntry>[] = [
+  {
+    header: "Type",
+    value: (row) => (row.kind === "course" ? "Réservation" : "Inscription"),
+    width: 14
+  },
+  { header: "Nom complet", value: (row) => row.fullName, width: 24 },
+  { header: "Email", value: (row) => row.email, width: 26 },
+  { header: "Téléphone", value: (row) => row.phone, width: 16 },
+  { header: "Profession", value: (row) => row.profession ?? "", width: 18 },
+  { header: "Wilaya", value: (row) => row.wilaya ?? "", width: 16 },
+  { header: "Formation / Intérêt", value: (row) => row.courseLabel ?? "", width: 28 },
+  {
+    header: "Statut",
+    value: (row) => statusLabels[row.status] ?? row.status,
+    width: 14
+  },
+  { header: "Message", value: (row) => row.message ?? "", width: 32 },
+  { header: "Date", value: (row) => formatDayOnly(row.createdAt), width: 16 }
+];
 
 type PendingDelete = {
   id: string;
@@ -76,6 +118,17 @@ export function SignupsList({ initialEntries }: { initialEntries: SignupEntry[] 
 
   return (
     <>
+      <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+        <p className="text-xs font-semibold text-slate-500">
+          {entries.length} inscription{entries.length !== 1 ? "s" : ""}
+        </p>
+        <ExportMenu
+          columns={signupExportColumns}
+          filename="dentova-inscriptions"
+          rows={entries}
+          title="Inscriptions"
+        />
+      </div>
       <div className="space-y-3">
         {entries.map((entry) => (
           <div

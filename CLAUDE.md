@@ -1,7 +1,11 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # Dentova — CLAUDE.md
 
-> **Last updated:** 2026-06-14
-> **App version:** 0.2.0
+> **Last updated:** 2026-07-20
+> **App version:** 0.2.0 (package.json still reports `dentova-rebuild@0.1.0`)
 
 ## Project Purpose & Goals
 
@@ -350,6 +354,31 @@ types/index.ts                     → Added: PixelPlatform, Pixel, MarketerStat
 - **Colors:** Same `dentova-*` palette — navy, teal, magenta, lavender
 - **Layout:** Same shell pattern as AdminShell (sidebar + topbar + content)
 
+## Marketing & Conversion Tracking
+
+The marketer console (above) manages *which* pixels fire; this layer is *how* events reach them on the public site. It is a two-part system — pixel bootstrap in the root layout, and per-page event trackers — and it degrades gracefully when no pixel is configured.
+
+### Pixel Bootstrap (root layout)
+- **`components/layout/PixelScripts.tsx`** (server component, injected in `app/layout.tsx`) fetches `Pixel.find({ active: true })` from MongoDB and injects the tracking library `<script>` tags. Meta falls back to `NEXT_PUBLIC_META_PIXEL_ID` when no active Meta pixel exists in the DB; TikTok has no env fallback. Returns `null` (injects nothing) if the DB is down or no pixels are active — never breaks the page.
+- **`components/layout/MetaPixelScript.tsx`** — `MetaFbeventsLoader` loads `fbevents.js` and the `fbq` stub **once**; `MetaPixelInit` runs `fbq('init', id)` + `fbq('track', 'PageView')` per pixel ID (plus a `<noscript>` fallback pixel). Split so init still runs even if GTM already created the `fbq` stub. TikTok uses its own inline loader in `PixelScripts.tsx`.
+
+### Event Trackers (client components)
+Rendered inside specific public pages; each returns `null` and only fires side effects in a `useEffect`:
+- **`components/marketing/CourseViewContentTracker.tsx`** — fires `ViewContent` on course detail and thank-you pages.
+- **`components/marketing/ReservationConversionTracker.tsx`** — fires `Purchase` (with DZD `value`) on the reservation thank-you page. **Deduplicated** via `sessionStorage` keyed on `reservation-<reservationId>`, and passes a stable `eventID` so browser-pixel + server-side (CAPI/GTM) events can be deduplicated downstream. Skips when `reservationId` is missing or `value <= 0`.
+
+### Event Dispatch Helpers (`lib/marketing/`)
+- **`track-meta-event.ts`** — `trackViewContent()` / `trackPurchase()`. Each pushes a **neutral `dataLayer` event** (`dentova_view_content` / `dentova_purchase`, plus an optional named event) for GTM consumers, then calls `fbq('track', ...)` directly. If `fbq` isn't ready yet it **polls** (100 ms × 50 attempts) rather than dropping the event. Meta event names are not hardcoded at call sites — they route through these helpers.
+- **`meta-course-tracking.ts`** — `getCourseTrackingPayload()` builds the shared `content_ids` / `content_name` / `value` / `currency` (DZD) payload from a course.
+
+### Reservation → Thank-You Flow
+`ReservationForm` submits to `POST /api/reservations`, then does a **full-page redirect** to `/courses/[slug]/thank-you?reservation=<id>` (`app/(site)/courses/[slug]/thank-you/page.tsx`). That page is `robots: { index: false }` and hosts both trackers — this is where the `Purchase` conversion fires. When editing the reservation flow, preserve the `?reservation=` id in the redirect or conversion tracking silently stops.
+
+### Relevant env var
+| Variable | Required | Purpose |
+|---|---|---|
+| `NEXT_PUBLIC_META_PIXEL_ID` | Optional | Fallback Meta pixel ID when no active DB pixel exists |
+
 ## Database Structure (13 MongoDB Models)
 
 All models use Mongoose with `{ timestamps: true }`. The pattern `mongoose.models.X || mongoose.model("X", schema)` prevents model re-registration in hot-reload.
@@ -643,6 +672,11 @@ Defined in `.env.local` (contains production credentials — **never commit**):
 | `SMTP_USER` | Optional | SMTP username |
 | `SMTP_PASS` | Optional | SMTP password |
 | `CONTACT_TO_EMAIL` | Optional | Destination email for contact notifications |
+| `NEXT_PUBLIC_META_PIXEL_ID` | Optional | Fallback Meta pixel ID when no active DB pixel exists (see Marketing & Conversion Tracking) |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | Optional* | Google service-account email (*required for reservations → Google Sheets sync) |
+| `GOOGLE_PRIVATE_KEY` | Optional* | Service-account private key (escape newlines as `\n`) |
+| `GOOGLE_SHEETS_SHARE_EMAIL` | Optional | Google account granted editor access to auto-created sheets |
+| `GOOGLE_SHEETS_RESERVATIONS_ID` | Optional | Existing spreadsheet ID to sync into instead of creating a new one |
 
 ---
 
@@ -659,7 +693,7 @@ Defined in `.env.local` (contains production credentials — **never commit**):
 npm run dev          # Start dev server (next dev)
 npm run build        # Production build (next build)
 npm run start        # Start production server (next start)
-npm run lint         # ESLint (next/core-web-vitals + next/typescript)
+npm run lint         # eslint . --max-warnings=0 (CI-strict: any warning fails)
 npm run seed:admin   # Seed admin user from env vars (uses tsx)
 ```
 
