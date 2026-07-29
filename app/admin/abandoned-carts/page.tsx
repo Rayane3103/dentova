@@ -10,6 +10,8 @@ import {
 } from "@/lib/data/abandoned-cart";
 import { tryConnectToDatabase } from "@/lib/db/connect";
 import { AbandonedCart } from "@/models/AbandonedCart";
+// Registers the Course schema so .populate("courseId") can resolve it.
+import "@/models/Course";
 import type { AbandonedCartRecord } from "@/types";
 
 export default async function AbandonedCartsPage() {

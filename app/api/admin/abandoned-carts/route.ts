@@ -10,6 +10,8 @@ import {
 import { connectToDatabase, hasDatabaseConfig } from "@/lib/db/connect";
 import { abandonedCartUpdateSchema } from "@/lib/validators/admin-abandoned-cart";
 import { AbandonedCart } from "@/models/AbandonedCart";
+// Registers the Course schema so .populate("courseId") can resolve it.
+import "@/models/Course";
 
 export const runtime = "nodejs";
 
