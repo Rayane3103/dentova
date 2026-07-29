@@ -10,7 +10,9 @@ const variantLabels: Record<string, string> = {
   new: "Nouveau",
   read: "Lu",
   active: "Actif",
-  inactive: "Inactif"
+  inactive: "Inactif",
+  contacted: "Contacté",
+  lost: "Perdu"
 };
 
 export function StatusBadge({

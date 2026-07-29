@@ -13,5 +13,7 @@ export const reservationSchema = z.object({
   wilaya: z.string().min(2, "Wilaya requise."),
   profession: z.string().optional(),
   message: z.string().optional(),
-  answers: z.array(reservationAnswerSchema).default([])
+  answers: z.array(reservationAnswerSchema).default([]),
+  // Links this submission back to its abandoned-cart draft, if any.
+  sessionKey: z.string().max(64).optional()
 });

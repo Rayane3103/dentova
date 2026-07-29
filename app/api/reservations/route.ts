@@ -1,4 +1,5 @@
 import { after, NextResponse } from "next/server";
+import { markDraftConverted } from "@/lib/data/abandoned-cart-convert";
 import { serializeCourseQuestions } from "@/lib/data/serialize";
 import { connectToDatabase, hasDatabaseConfig } from "@/lib/db/connect";
 import { syncReservationsSheet } from "@/lib/integrations/reservations-sheet";
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
 
   await connectToDatabase();
 
-  const { answers: submittedAnswers, ...reservationData } = parsed.data;
+  const { answers: submittedAnswers, sessionKey, ...reservationData } = parsed.data;
 
   const courseDoc = await Course.findById(reservationData.courseId)
     .select("questions")
@@ -77,7 +78,19 @@ export async function POST(request: Request) {
       status: "pending"
     });
 
-    after(() => syncReservationsSheet());
+    after(async () => {
+      // Settled independently so neither task can break the other.
+      await Promise.allSettled([
+        syncReservationsSheet(),
+        markDraftConverted({
+          courseId: reservationData.courseId,
+          email: reservationData.email,
+          phone: reservationData.phone,
+          reservationId: String(reservation._id),
+          sessionKey
+        })
+      ]);
+    });
 
     return NextResponse.json({ reservation }, { status: 201 });
   } catch (error) {

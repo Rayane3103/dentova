@@ -10,6 +10,7 @@ import {
   Mail,
   MessageSquare,
   Newspaper,
+  ShoppingCart,
   Star,
   Ticket,
   Users
@@ -60,6 +61,11 @@ export const adminNavGroups: AdminNavGroup[] = [
     defaultOpen: true,
     items: [
       { href: "/admin/reservations", label: "Réservations", icon: Ticket },
+      {
+        href: "/admin/abandoned-carts",
+        label: "Paniers oubliés",
+        icon: ShoppingCart
+      },
       { href: "/admin/signups", label: "Inscriptions", icon: Users },
       { href: "/admin/messages", label: "Messages", icon: MessageSquare },
       { href: "/admin/newsletter", label: "Newsletter", icon: Mail }

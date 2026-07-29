@@ -54,6 +54,26 @@ export type ReservationAnswer = {
   value: string[];
 };
 
+export type AbandonedCartStatus = "new" | "contacted" | "lost";
+
+export type AbandonedCartRecord = {
+  id: string;
+  courseId: string;
+  courseTitle: string;
+  email: string;
+  fullName: string;
+  phone: string;
+  profession?: string;
+  wilaya?: string;
+  message?: string;
+  attempts: number;
+  filledFields: number;
+  totalFields: number;
+  status: AbandonedCartStatus;
+  lastActivityAt: string;
+  createdAt: string;
+};
+
 export type WorkshopImage = {
   id: string;
   title: string;

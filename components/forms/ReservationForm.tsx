@@ -13,10 +13,11 @@ import {
   ShieldCheck,
   User
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
+import { useReservationDraft } from "@/components/forms/use-reservation-draft";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -51,13 +52,52 @@ export function ReservationForm({ course }: { course: Course }) {
   const [answerErrors, setAnswerErrors] = useState<Record<string, string>>({});
   const {
     formState: { errors, isSubmitting },
+    getValues,
     handleSubmit,
     register,
-    reset
+    reset,
+    watch
   } = useForm<ReservationValues>({
     defaultValues: emptyValues(course.id),
     resolver: zodResolver(reservationSchema)
   });
+
+  // Answers live outside react-hook-form, so the draft snapshot reads them
+  // through a ref to avoid a stale closure.
+  const answersRef = useRef(answers);
+  useEffect(() => {
+    answersRef.current = answers;
+  }, [answers]);
+
+  const { getSessionKey, stopCapture, touch } = useReservationDraft({
+    courseId: course.id,
+    getSnapshot: () => {
+      const values = getValues();
+      return {
+        email: values.email,
+        fullName: values.fullName,
+        message: values.message,
+        phone: values.phone,
+        profession: values.profession,
+        wilaya: values.wilaya,
+        answers: Object.entries(answersRef.current)
+          .map(([questionId, value]) => ({
+            questionId,
+            value: value.filter(Boolean)
+          }))
+          .filter((answer) => answer.value.length > 0)
+      };
+    }
+  });
+
+  useEffect(() => {
+    const subscription = watch(() => touch());
+    return () => subscription.unsubscribe();
+  }, [touch, watch]);
+
+  useEffect(() => {
+    touch();
+  }, [answers, touch]);
 
   const setAnswer = (questionId: string, value: string[]) => {
     setAnswers((current) => ({ ...current, [questionId]: value }));
@@ -108,13 +148,20 @@ export function ReservationForm({ course }: { course: Course }) {
     const response = await fetch("/api/reservations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...values, answers: payloadAnswers })
+      body: JSON.stringify({
+        ...values,
+        answers: payloadAnswers,
+        sessionKey: getSessionKey()
+      })
     });
 
     if (!response.ok) {
       toast.error("Réservation non envoyée. Réessayez dans un instant.");
       return;
     }
+
+    // The reservation went through — stop capturing before reset() fires watch.
+    stopCapture();
 
     const data = (await response.json().catch(() => null)) as ReservationResponse | null;
     const reservationId = data?.reservation?._id || data?.reservation?.id;
@@ -247,10 +294,16 @@ export function ReservationForm({ course }: { course: Course }) {
           )}
         </button>
 
-        <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs font-medium text-dentova-muted">
-          <ShieldCheck className="h-3.5 w-3.5 text-dentova-teal" />
-          Vos informations sont sécurisées et ne seront jamais partagées.
-        </p>
+        <div className="mt-4 space-y-1.5 text-center text-xs font-medium text-dentova-muted">
+          <p className="flex items-center justify-center gap-1.5">
+            <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-dentova-teal" />
+            Vos informations sont sécurisées et ne seront jamais partagées.
+          </p>
+          <p>
+            Si vous ne finalisez pas votre inscription, notre équipe peut vous
+            recontacter pour vous aider.
+          </p>
+        </div>
     </form>
   );
 }
