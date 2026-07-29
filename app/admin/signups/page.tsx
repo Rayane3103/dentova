@@ -3,6 +3,9 @@ import { SignupsList } from "@/components/admin/SignupsList";
 import { tryConnectToDatabase } from "@/lib/db/connect";
 import { ClientSignup } from "@/models/ClientSignup";
 import { Reservation } from "@/models/Reservation";
+// Side-effect import: ensures the Course schema is registered so the
+// populate("courseId") below works in every serverless context.
+import "@/models/Course";
 
 export default async function SignupsPage() {
   let entries: Parameters<typeof SignupsList>[0]["initialEntries"] = [];
