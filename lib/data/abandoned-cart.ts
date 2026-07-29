@@ -1,7 +1,7 @@
 import type { AbandonedCartRecord, AbandonedCartStatus } from "@/types";
 
 /** Idle time after which an unconverted draft is treated as abandoned. */
-export const ABANDON_THRESHOLD_MINUTES = 30;
+export const ABANDON_THRESHOLD_MINUTES = 5;
 
 export const ABANDONED_CARTS_PAGE_SIZE = 25;
 
