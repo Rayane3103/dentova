@@ -1,5 +1,6 @@
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
+import { SiteStructuredData } from "@/components/seo/StructuredData";
 import { getAdminSession } from "@/lib/auth/cookies";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +14,7 @@ export default async function SiteLayout({
 
   return (
     <>
+      <SiteStructuredData />
       <Navbar authenticated={Boolean(session)} />
       {children}
       <Footer />

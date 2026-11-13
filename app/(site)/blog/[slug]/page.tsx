@@ -1,9 +1,11 @@
+import type { Metadata } from "next";
 import { ArrowLeft, Heart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAdminSession } from "@/lib/auth/cookies";
 import { getPostBySlug } from "@/lib/data/queries";
+import { BreadcrumbStructuredData } from "@/components/seo/StructuredData";
 import { Container } from "@/components/ui/Container";
 import { PostLikeButton } from "@/components/public/PostLikeButton";
 
@@ -12,6 +14,31 @@ export const dynamic = "force-dynamic";
 type RouteContext = {
   params: Promise<{ slug: string }>;
 };
+
+export async function generateMetadata({ params }: RouteContext): Promise<Metadata> {
+  const { slug } = await params;
+  const post = await getPostBySlug(slug);
+
+  if (!post) {
+    return { title: "Article" };
+  }
+
+  const description = post.content.replace(/\s+/g, " ").slice(0, 160);
+
+  return {
+    title: post.caption,
+    description,
+    alternates: { canonical: `/blog/${post.slug}` },
+    openGraph: {
+      title: post.caption,
+      description,
+      url: `/blog/${post.slug}`,
+      type: "article",
+      siteName: "Dentova",
+      images: post.imageUrl ? [{ url: post.imageUrl, alt: post.caption }] : []
+    }
+  };
+}
 
 export default async function BlogPostPage({ params }: RouteContext) {
   const { slug } = await params;
@@ -26,6 +53,13 @@ export default async function BlogPostPage({ params }: RouteContext) {
 
   return (
     <main className="bg-white">
+      <BreadcrumbStructuredData
+        items={[
+          { name: "Accueil", path: "/" },
+          { name: "Blog", path: "/blog" },
+          { name: post.caption, path: `/blog/${post.slug}` }
+        ]}
+      />
       <article className="px-6 py-16">
         <Container>
           <div className="mx-auto max-w-3xl">

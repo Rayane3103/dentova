@@ -5,7 +5,10 @@ import { getCategories, getPublishedCourses } from "@/lib/data/queries";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Prochains cours"
+  title: "Formations dentaires",
+  description:
+    "Catalogue complet des formations, masterclasses et cycles dentaires Dentova a Alger, Oran et Constantine.",
+  alternates: { canonical: "/courses" }
 };
 
 export default async function CoursesPage() {

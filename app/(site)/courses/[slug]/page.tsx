@@ -17,8 +17,9 @@ import { CourseViewContentTracker } from "@/components/marketing/CourseViewConte
 import { ImageGallery } from "@/components/public/ImageGallery";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
+import { BreadcrumbStructuredData } from "@/components/seo/StructuredData";
 import { Container } from "@/components/ui/Container";
-import { includedBenefits } from "@/lib/constants";
+import { includedBenefits, siteConfig } from "@/lib/constants";
 import {
   getActiveWorkshopImages,
   getCourseBySlug
@@ -97,6 +98,13 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
         slug={course.slug}
         title={course.title}
       />
+      <BreadcrumbStructuredData
+        items={[
+          { name: "Accueil", path: "/" },
+          { name: "Formations", path: "/courses" },
+          { name: course.title, path: `/courses/${course.slug}` }
+        ]}
+      />
       {/* ── JSON-LD structured data for Meta/Google ── */}
       <script
         dangerouslySetInnerHTML={{
@@ -111,7 +119,7 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
               "@type": "Offer",
               price: course.price,
               priceCurrency: "DZD",
-              url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://dentova.dz"}/courses/${course.slug}`,
+              url: `${siteConfig.url.replace(/\/$/, "")}/courses/${course.slug}`,
               availability: "https://schema.org/InStock"
             }
           })
