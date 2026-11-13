@@ -17,7 +17,6 @@ import { CourseViewContentTracker } from "@/components/marketing/CourseViewConte
 import { ImageGallery } from "@/components/public/ImageGallery";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
-import { BreadcrumbStructuredData } from "@/components/seo/StructuredData";
 import { Container } from "@/components/ui/Container";
 import { includedBenefits, siteConfig } from "@/lib/constants";
 import {
@@ -97,13 +96,6 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
         price={course.price}
         slug={course.slug}
         title={course.title}
-      />
-      <BreadcrumbStructuredData
-        items={[
-          { name: "Accueil", path: "/" },
-          { name: "Formations", path: "/courses" },
-          { name: course.title, path: `/courses/${course.slug}` }
-        ]}
       />
       {/* ── JSON-LD structured data for Meta/Google ── */}
       <script

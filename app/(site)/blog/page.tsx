@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Newspaper } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -6,13 +5,6 @@ import { getAdminSession } from "@/lib/auth/cookies";
 import { getPublishedPosts } from "@/lib/data/queries";
 import { Container } from "@/components/ui/Container";
 import { PostLikeButton } from "@/components/public/PostLikeButton";
-
-export const metadata: Metadata = {
-  title: "Blog",
-  description:
-    "Actualites, conseils cliniques et annonces des formations dentaires Dentova en Algerie.",
-  alternates: { canonical: "/blog" }
-};
 
 export const dynamic = "force-dynamic";
 

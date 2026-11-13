@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { AboutSection } from "@/components/public/AboutSection";
 import { BlogSection } from "@/components/public/BlogSection";
 import { ContactSection } from "@/components/public/ContactSection";
@@ -20,12 +19,6 @@ import {
   getPublishedTestimonials,
   getUpcomingCourses
 } from "@/lib/data/queries";
-
-export const metadata: Metadata = {
-  description:
-    "Dentova est une societe specialisee dans l'organisation de formations continues en medecine dentaire. Nous concevons et organisons des formations, masterclasses et evenements dentaires en Algerie.",
-  alternates: { canonical: "/" }
-};
 
 export const dynamic = "force-dynamic";
 

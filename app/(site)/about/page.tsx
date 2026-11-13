@@ -4,10 +4,7 @@ import { SectionHeader } from "@/components/public/SectionHeader";
 import { Container } from "@/components/ui/Container";
 
 export const metadata: Metadata = {
-  title: "A propos de nous",
-  description:
-    "Dentova Events accompagne les praticiens algeriens avec des formations cliniques rigoureuses et des intervenants reconnus.",
-  alternates: { canonical: "/about" }
+  title: "A propos de nous"
 };
 
 export default function AboutPage() {
