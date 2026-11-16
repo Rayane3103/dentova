@@ -2,10 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-# Dentova — CLAUDE.md
+# Dentova - CLAUDE.md
 
-> **Last updated:** 2026-07-20
-> **App version:** 0.2.0 (package.json still reports `dentova-rebuild@0.1.0`)
+> **Last updated:** 2026-11-16
+> **App version:** `package.json` reports `dentova-rebuild@0.1.0` (not bumped per release)
 
 ## Project Purpose & Goals
 
@@ -25,237 +25,129 @@ Key business goals:
 
 | Layer | Technology | Version |
 |---|---|---|
-| Framework | Next.js (App Router) | 15.1.3 |
+| Framework | Next.js (App Router) | 15.1 |
 | Runtime | React + TypeScript | 19.0 / 5.7 |
-| Styling | Tailwind CSS | 3.4.17 |
+| Styling | Tailwind CSS | 3.4 |
 | Database | MongoDB (Atlas) + Mongoose | 8.9 |
-| Auth | JWT via `jose` + `bcryptjs` | — |
+| Auth | JWT via `jose` + `bcryptjs` | 5.9 / 2.4 |
 | Forms | react-hook-form + zod | 7.54 / 3.24 |
 | Animation | framer-motion | 11.15 |
 | Icons | lucide-react | 0.468 |
 | Toasts | sonner | 1.7 |
 | Media | Cloudinary SDK | 2.5 |
 | Email | Nodemailer | 8.0 |
+| Spreadsheets | exceljs + google-auth-library | 4.4 / 10.9 |
+| PDF | jspdf + jspdf-autotable | 4.2 / 5.0 |
 
-**No state management library** — the app uses React Server Components for data fetching (no client-side store). Client state is local (`useState`/`useForm`).
+**No state management library.** Reads go through React Server Components (`lib/data/queries.ts`); client state is local (`useState` / `useForm`).
 
----
+**No `googleapis` SDK** - the Sheets integration calls the REST API directly with a service-account JWT, to keep the serverless bundle small.
 
-## Project Structure (Full Tree)
+## Project Structure
 
 ```
 app/
-  globals.css                    → Global styles, CSS variables, scrollbar, marquee animation
-  layout.tsx                     → Root layout: fonts (Inter + DarkerGrotesque), Toaster, metadata
-  loading.tsx                    → Global loading spinner
-  not-found.tsx                  → 404 page
-  (site)/                        → PUBLIC-FACING PAGES (route group)
-    layout.tsx                   → Navbar + Footer wrapper, force-dynamic
-    page.tsx                     → Homepage (Hero, About, Courses, Blog, Testimonials, FAQ, Contact, Gallery)
-    about/page.tsx               → About page
-    blog/page.tsx                → Blog listing (all published posts)
-    blog/[slug]/page.tsx         → Single blog post with like button
-    courses/page.tsx             → Course catalog with category/location filters
-    courses/[slug]/page.tsx      → Course detail with reservation form
-    cookies/page.tsx             → Cookie policy
-    inscription/page.tsx         → Standalone signup/registration page
-    privacy/page.tsx             → Privacy policy
-    terms/page.tsx               → Terms of service
-  admin/                         → ADMIN CONSOLE (protected by middleware)
-    layout.tsx                   → AdminShell wrapper, force-dynamic
-    loading.tsx                  → Admin loading skeleton
-    page.tsx                     → Dashboard (stats cards, recent courses, quick actions)
-    login/page.tsx               → Login page (redirects if already authed)
-    categories/page.tsx          → Category list
-    categories/new/page.tsx      → Create category form
-    categories/[id]/edit/page.tsx → Edit category form
-    courses/page.tsx             → Course list table
-    courses/new/page.tsx         → Create course form
-    courses/[id]/edit/page.tsx   → Edit course form
-    faqs/page.tsx                → FAQ list
-    faqs/new/page.tsx            → Create FAQ form
-    faqs/[id]/edit/page.tsx      → Edit FAQ form
-    feedback/page.tsx            → Feedback moderation panel
-    mentors/page.tsx             → Mentor list
-    mentors/new/page.tsx         → Create mentor form
-    mentors/[id]/edit/page.tsx   → Edit mentor form
-    messages/page.tsx            → Contact messages inbox
-    newsletter/page.tsx          → Newsletter subscriber list
-    posts/page.tsx               → Blog post list
-    posts/new/page.tsx           → Create blog post form
-    posts/[id]/edit/page.tsx     → Edit blog post form
-    reservations/page.tsx        → CRM-style reservations management
-    signups/page.tsx             → Client signup records
-    workshop-images/page.tsx     → Gallery image list
-    workshop-images/new/page.tsx → Create gallery image form
-    workshop-images/[id]/edit/page.tsx → Edit gallery image form
+  layout.tsx                     -> Root layout: fonts, metadata, GTM, PixelScripts, TopLoader, Toaster
+  globals.css                    -> CSS variables, scrollbar, marquee animation
+  loading.tsx / not-found.tsx    -> Global spinner / 404
+  login/page.tsx                 -> UNIFIED login (admin + marketer)
+  (site)/                        -> PUBLIC PAGES - Navbar + Footer, force-dynamic
+    page.tsx                     -> Homepage (Hero, About, Courses, Sponsors, Blog, Testimonials, FAQ, Contact, Gallery)
+    about|privacy|terms|cookies  -> Static content pages
+    inscription/page.tsx         -> Standalone signup page
+    blog/page.tsx                -> Blog listing
+    blog/[slug]/page.tsx         -> Single post with like button
+    courses/page.tsx             -> Catalog with category + city filters
+    courses/[slug]/page.tsx      -> Course detail, reservation form, Product JSON-LD
+    courses/[slug]/thank-you/    -> Post-reservation page - fires the Purchase conversion
+  admin/                         -> ADMIN CONSOLE (middleware-protected, role: admin)
+    layout.tsx, loading.tsx, page.tsx   -> AdminShell, skeleton, dashboard
+    login/page.tsx               -> Legacy login (superseded by /login)
+    courses|categories|mentors|posts|sponsors|workshop-images|faqs/
+                                 -> list + new/ + [id]/edit/ CRUD triads
+    reservations/page.tsx        -> CRM: search, filter, paginate, inline edit, export, Sheets sync
+    abandoned-carts/page.tsx     -> "Paniers oublies" - unconverted reservation drafts
+    signups|messages|newsletter|feedback/  -> Client records, inbox, subscribers, moderation
+  marketer/                      -> MARKETER CONSOLE (middleware-protected, role: marketer)
+    layout.tsx, page.tsx         -> MarketerShell, marketing dashboard
+    login/page.tsx               -> Legacy login (superseded by /login)
+    pixels/page.tsx              -> Meta/TikTok pixel management
+    reservations|subscribers|feedback|messages/  -> Stubs pointing at the admin console
   api/
-    courses/route.ts             → GET public courses
-    courses/[slug]/route.ts      → GET single course by slug
-    contact/route.ts             → POST contact form (DB + email notification)
-    feedback/route.ts            → POST feedback/testimonial
-    newsletter/route.ts          → POST newsletter subscription
-    reservations/route.ts        → POST course reservation
-    signup/route.ts              → POST client signup
+    auth/login|logout            -> UNIFIED auth - tries marketer, then admin
+    courses, courses/[slug]      -> Public course reads
+    contact|feedback|newsletter|signup    -> Public form submissions
+    reservations/route.ts        -> Create reservation (+ draft conversion, Sheets sync via after())
+    reservations/draft/route.ts  -> Upsert abandoned-cart draft as the visitor types
     admin/
-      login/route.ts             → POST admin login (JWT cookie)
-      logout/route.ts            → POST admin logout (clear cookie)
-      upload/route.ts            → POST image upload to Cloudinary
-      categories/route.ts        → GET/POST admin categories
-      categories/[id]/route.ts   → PATCH/DELETE single category
-      courses/route.ts           → GET/POST admin courses
-      courses/[id]/route.ts      → PATCH/DELETE single course
-      faqs/route.ts              → GET/POST admin FAQs
-      faqs/[id]/route.ts         → PATCH/DELETE single FAQ
-      feedback/route.ts          → GET/PATCH/DELETE admin feedback
-      mentors/route.ts           → GET/POST admin mentors
-      mentors/[id]/route.ts      → PATCH/DELETE single mentor
-      messages/route.ts          → GET/PATCH admin messages
-      newsletter/route.ts        → GET admin newsletter subscribers
-      posts/route.ts             → GET/POST admin posts
-      posts/[id]/route.ts        → PATCH/DELETE single post
-      posts/like/route.ts        → POST toggle like (auth required)
-      reservations/route.ts      → GET/PATCH admin reservations
-      signups/route.ts           → GET admin signups
-      workshop-images/route.ts   → GET/POST admin gallery images
-      workshop-images/[id]/route.ts → PATCH/DELETE single image
+      login|logout|upload        -> Session + Cloudinary upload
+      categories|courses|faqs|mentors|posts|sponsors|workshop-images/
+                                 -> GET/POST + [id] PATCH/DELETE
+      reservations/              -> GET/PATCH, [id] detail, sheet/ (manual Sheets sync)
+      abandoned-carts/route.ts   -> GET/PATCH abandoned drafts
+      signups|messages|newsletter|feedback/  -> Read + status updates
+      posts/like/route.ts        -> Toggle like (reads session directly)
+    marketer/
+      login|logout|stats         -> Session + aggregated KPIs
+      pixels/, pixels/[id]       -> Pixel CRUD
 
 components/
-  admin/                         → Admin console components
-    admin-ui.ts                  → Shared CSS class strings for admin forms/tables/badges
-    AdminDeleteButton.tsx         → Reusable delete button with confirmation dialog
-    AdminHeader.tsx               → Page header with title, description, optional action slot
-    AdminLoginForm.tsx            → Login form (client component, react-hook-form)
-    AdminMobileDrawer.tsx         → Mobile slide-in navigation drawer
-    AdminNavLinks.tsx             → Sidebar navigation links grouped by section
-    AdminShell.tsx                → Admin layout shell (sidebar + topbar + content area)
-    AdminSidebar.tsx              → Desktop sidebar
-    AdminStatCard.tsx             → Dashboard stat card with accent color, icon, value, link
-    AdminTable.tsx                → Generic admin data table
-    AdminTopBar.tsx               → Top bar with mobile menu toggle, user info, logout
-    CategoryForm.tsx              → Create/edit category form
-    ConfirmDialog.tsx             → Generic confirmation modal
-    CourseForm.tsx                → Create/edit course form (with category select, image upload)
-    CoursesTableClient.tsx        → Courses data table with search, publish toggle, actions
-    DataTable.tsx                 → Low-level reusable table component
-    EmptyAdminState.tsx           → Empty state placeholder
-    FAQForm.tsx                   → Create/edit FAQ form
-    FeedbackAdminPanel.tsx        → Feedback moderation with approve/reject/delete
-    ImageUploadField.tsx          → File upload input with Cloudinary integration
-    MentorForm.tsx                → Create/edit mentor form
-    PostForm.tsx                  → Create/edit blog post form
-    ReservationsCRM.tsx           → Full CRM: search, filter, expand rows, inline edit, status update
-    StatusBadge.tsx               → Colored status badge (pending/confirmed/cancelled/etc.)
-    WorkshopImageForm.tsx         → Create/edit gallery image form
-
-  forms/                         → Public-facing forms
-    ContactForm.tsx               → Contact form (name, email, phone, message)
-    FeedbackForm.tsx              → Testimonial/feedback form with star rating
-    FormField.tsx                 → Reusable labeled form field wrapper
-    NewsletterForm.tsx            → Email-only newsletter signup
-    ReservationForm.tsx           → Course reservation form (name, email, phone, wilaya, etc.)
-    SignupForm.tsx                → Client registration/interest form
-    StarRating.tsx                → Clickable star rating component
-
-  layout/                        → Site-wide layout
-    Footer.tsx                    → Footer with navigation, contact info, legal links
-    Navbar.tsx                    → Top navigation bar (mobile drawer, auth-aware, contact bar)
-
-  public/                        → Public page sections (composable)
-    AboutSection.tsx              → "Qui sommes-nous ?" section
-    BlogSection.tsx               → Blog posts grid teaser
-    ContactSection.tsx            → Contact form section
-    CourseCard.tsx                → Course card (image, category, date, location, price)
-    CoursesSection.tsx            → Full courses catalog with filters (category + city)
-    FAQSection.tsx                → Accordion FAQ list
-    HeroSection.tsx               → Hero with upcoming courses card, stats bar, CTA buttons
-    ImageGallery.tsx              → Photo gallery grid with lightbox
-    LegalPage.tsx                 → Reusable legal page wrapper
-    MotionCounter.tsx             → Animated number counter (scroll-triggered)
-    MotionReveal.tsx              → Scroll-reveal wrapper using framer-motion
-    ParallaxBlob.tsx              → Decorative animated gradient blob
-    PostLikeButton.tsx            → Like/unlike button for blog posts
-    SectionHeader.tsx             → Reusable section heading with eyebrow, title, accent, description
-    StaggerContainer.tsx          → Staggered children animation container
-    TestimonialsSection.tsx       → Testimonials carousel/grid
-    WhyParticipateSection.tsx     → Benefits list section
-
-  ui/                            → Generic UI primitives
-    Badge.tsx                     → Pill/badge component
-    Button.tsx                    → Polymorphic button (button + Link via asChild), 5 variants, 4 sizes
-    Card.tsx                      → Simple card wrapper
-    Checkbox.tsx                  → Styled checkbox
-    ConfirmDialog.tsx             → Modal confirmation dialog
-    Container.tsx                 → Max-width centered container
-    FileUpload.tsx                → File input with drag-and-drop
-    Input.tsx                     → Styled text input (sm/md sizes)
-    Select.tsx                    → Styled select dropdown
-    SuccessDialog.tsx             → Success confirmation modal
-    Textarea.tsx                  → Styled textarea (sm/md sizes)
+  auth/UnifiedLoginForm.tsx      -> Role-detecting login form
+  admin/                         -> AdminShell, Sidebar, TopBar, MobileDrawer, NavLinks, Header,
+                                    StatCard, Table, DataTable, ConfirmDialog, DeleteButton,
+                                    EmptyAdminState, StatusBadge, AdminScrollLock, admin-ui.ts
+                                    ReservationsCRM, AbandonedCartsList, SignupsList,
+                                    FeedbackAdminPanel, CoursesTableClient,
+                                    ExportMenu, ReservationsSheetButton,
+                                    CourseQuestionsBuilder, ImageUploadField,
+                                    CourseForm, CategoryForm, MentorForm, PostForm,
+                                    SponsorForm, FAQForm, WorkshopImageForm
+  marketer/                      -> MarketerShell, Sidebar, TopBar, MobileDrawer, NavLinks,
+                                    Header, StatCard, TrendIndicator, AnalyticsChart,
+                                    PixelManager, MarketerLoginForm
+  forms/                         -> ContactForm, FeedbackForm, NewsletterForm, ReservationForm,
+                                    SignupForm, FormField, StarRating, use-reservation-draft.ts
+  layout/                        -> Navbar, Footer, TopLoader, GoogleTagManager,
+                                    PixelScripts, MetaPixelScript
+  marketing/                     -> CourseViewContentTracker, ReservationConversionTracker
+  public/                        -> HeroSection, AboutSection, CoursesSection, CourseCard,
+                                    CoursePriceCard, SponsorsBar, BlogSection, FAQSection,
+                                    TestimonialsSection, WhyParticipateSection, ContactSection,
+                                    ImageGallery, LegalPage, SectionHeader, MotionReveal,
+                                    MotionCounter, StaggerContainer, ParallaxBlob, PostLikeButton
+                                    (HeroSection.previous.tsx is a superseded leftover)
+  ui/                            -> Button, Input, Textarea, Select, Checkbox, Badge, Card,
+                                    Container, FileUpload, ConfirmDialog, SuccessDialog,
+                                    AdminPageSkeleton, AdminFormSkeleton, PublicPageSkeleton
 
 lib/
-  admin/
-    navigation.ts                 → Admin sidebar navigation groups, items, and active-path logic
-  auth/
-    admin-user.ts                 → Admin authentication: upsertAdminFromEnv(), authenticateAdmin()
-    cookies.ts                    → getAdminSession(), setSessionCookie(), clearSessionCookie()
-    password.ts                   → bcrypt hash/verify wrappers
-    session.ts                    → JWT sign/verify using jose (HS256, 7d expiry)
+  admin/navigation.ts            -> Admin sidebar groups + active-path logic
+  marketer/navigation.ts         -> Marketer sidebar groups
+  auth/                          -> admin-user, marketer-user, session (jose), cookies, password
   data/
-    queries.ts                    → All server-side data fetching functions (getCategories, getPublishedCourses, etc.)
-    serialize.ts                  → Mongoose doc → TypeScript type converters (serializeCourse, serializePost, etc.)
-  db/
-    connect.ts                    → MongoDB connection singleton with global caching and tryConnect fallback
-  validators/                     → Zod schemas shared between API routes and client forms
-    admin.ts                      → adminLoginSchema
-    admin-reservation.ts          → reservationStatusSchema, adminReservationUpdateSchema
-    category.ts                   → categorySchema
-    contact.ts                    → contactSchema
-    content.ts                    → faqSchema, mentorSchema (FAQ + mentor validators)
-    course.ts                     → courseSchema
-    feedback.ts                   → feedbackSchema
-    newsletter.ts                 → newsletterSchema
-    post.ts                       → postSchema
-    reservation.ts                → reservationSchema
-    signup.ts                     → signupSchema
-    workshop-image.ts             → workshopImageSchema
-  cloudinary.ts                   → Cloudinary v2 config helper (throws if env vars missing)
-  constants.ts                    → siteConfig, navItems, includedBenefits
-  format.ts                       → Formatting utilities: formatPrice (DZD), formatCourseDate (fr-FR), formatShortDate
-  mail.ts                         → Nodemailer transport: sendContactNotification (silently skips if unconfigured)
-  slug.ts                         → slugify() — French-aware URL slug generator
-  utils.ts                        → cn() — clsx + tailwind-merge class merging
+    queries.ts                   -> All server-side reads (returns [] / null when DB is down)
+    serialize.ts                 -> Mongoose doc -> typed object converters
+    reservation-record.ts        -> Reservation filters, status counts, RESERVATIONS_PAGE_SIZE
+    abandoned-cart.ts            -> Abandon threshold, filters, counts, completeness
+    abandoned-cart-convert.ts    -> markDraftConverted()
+  db/connect.ts                  -> Connection singleton: connectToDatabase / tryConnect / hasDatabaseConfig
+  export/table-export.ts         -> CSV / Excel / PDF export for any admin table
+  integrations/
+    google-sheets.ts             -> Service-account REST client (Sheets + Drive)
+    reservations-sheet.ts        -> Reservations -> spreadsheet mirror
+  marketing/                     -> track-meta-event.ts, meta-course-tracking.ts
+  validators/                    -> One Zod schema per entity, shared server + client
+  cloudinary.ts, constants.ts, format.ts, mail.ts, slug.ts, utils.ts, youtube.ts
 
-models/                          → Mongoose schemas (all with timestamps)
-  AdminUser.ts                    → email, name, passwordHash, role
-  Category.ts                     → name, slug, description, sortOrder
-  ClientSignup.ts                 → courseInterest, email, fullName, message, newsletterOptIn, phone, profession, status, wilaya
-  ContactMessage.ts               → email, fullName, message, phone, status
-  Course.ts                       → categoryId (ref Category), contactEmail/Phone, date, description, excerpt, featured, imageUrl/PublicId, instructor, location, maxSeats, price, published, showOnHomepage, slug, subtitle, time, title
-  FAQ.ts                          → answer, category, published, question, sortOrder
-  Feedback.ts                     → approved, courseName, email, fullName, message, phone, rating, role, showOnHomepage
-  Mentor.ts                       → active, bio, imageUrl/PublicId, name, order, showOnHomepage, specialty, title
-  NewsletterSubscriber.ts         → email (unique)
-  Post.ts                         → content, caption, imageUrl/PublicId, published, slug, likes (ObjectId[] ref AdminUser)
-  Reservation.ts                  → courseId (ref Course), email, fullName, message, phone, profession, status, wilaya
-  WorkshopImage.ts                → active, description, imageUrl/PublicId, order, title
-
-types/
-  index.ts                        → Shared TypeScript interfaces: CourseStatus, Category, Course, WorkshopImage, Testimonial, Mentor, FAQItem, BlogPost
-
-middleware.ts                     → Edge middleware: JWT cookie check on /admin/*, /api/admin/*, /marketer/*, /api/marketer/* (except /login)
-scripts/
-  seed-admin.ts                   → Seeds admin user from env vars (MONGODB_URI, ADMIN_EMAIL, ADMIN_PASSWORD)
-assets/                           → Static image assets (WebP photos for courses, hero, gallery)
-public/
-  brand/                          → Logo SVGs (logo, logomark, white variants), pattern SVGs
-  fonts/                          → DarkerGrotesque variable font file
-  images/                         → Organized into assets/, partners/, placeholders/
+models/                          -> 17 Mongoose schemas (see Database Structure)
+types/index.ts                   -> Shared TypeScript types - keep in sync with the models
+middleware.ts                    -> Edge auth guard with role enforcement
+scripts/seed-admin.ts            -> Seeds admin + marketer from env vars
+public/                          -> brand/ (logos, patterns), fonts/, images/
+to_get_inspired_from/            -> Old Vite prototype - NOT part of the app, fails lint
 ```
 
----
-
-## Marketer View (v0.2.0)
+## Marketer View
 
 A dedicated marketing dashboard with its own authentication, separate from the admin console.
 
@@ -263,7 +155,8 @@ A dedicated marketing dashboard with its own authentication, separate from the a
 - **Parallel to admin:** Uses same JWT secret (`ADMIN_JWT_SECRET`), different cookie (`dentova_marketer_session`)
 - **Credential bootstrap:** `MARKETER_EMAIL`, `MARKETER_PASSWORD`, `MARKETER_NAME` in `.env.local`
 - **Seed script:** `npm run seed:admin` now seeds both admin AND marketer accounts
-- **Middleware:** Protects `/marketer/:path*` and `/api/marketer/:path*` (except `/login`)
+- **Middleware:** Protects `/marketer/:path*` and `/api/marketer/:path*`, and rejects an admin token at those paths (role is checked, not just presence)
+- **Login:** via the unified `/login` page - see Authentication & Authorization below
 - **Session payload:** `{ marketerId, email, role: "marketer" }`
 
 ### Files Added
@@ -379,36 +272,75 @@ Rendered inside specific public pages; each returns `null` and only fires side e
 |---|---|---|
 | `NEXT_PUBLIC_META_PIXEL_ID` | Optional | Fallback Meta pixel ID when no active DB pixel exists |
 
-## Database Structure (13 MongoDB Models)
+## Reservation Funnel
 
-All models use Mongoose with `{ timestamps: true }`. The pattern `mongoose.models.X || mongoose.model("X", schema)` prevents model re-registration in hot-reload.
+The highest-value path in the app. Four pieces, in order:
+
+### 1. Per-course questionnaires
+`Course.questions[]` holds an optional list of `{ id, label, type: "text" | "select", required, options[], allowMultiple }`. Built in the admin via [components/admin/CourseQuestionsBuilder.tsx](components/admin/CourseQuestionsBuilder.tsx), rendered by `ReservationForm`, and stored back on the reservation as `answers[]` with the label **denormalised** — so renaming a question later does not rewrite historical answers.
+
+### 2. Abandoned-cart capture ("Paniers oubliés")
+- `POST /api/reservations/draft` upserts an `AbandonedCart` row **as the visitor types**, keyed `{ courseId, sessionKey }` (unique index). Client hook: [components/forms/use-reservation-draft.ts](components/forms/use-reservation-draft.ts)
+- "Abandoned" is **derived at query time**, never stored: `converted: false` plus `lastActivityAt` older than `ABANDON_THRESHOLD_MINUTES` (currently **5 minutes**, [lib/data/abandoned-cart.ts](lib/data/abandoned-cart.ts)). No cron job exists or is needed
+- On successful reservation, `markDraftConverted()` ([lib/data/abandoned-cart-convert.ts](lib/data/abandoned-cart-convert.ts)) flips `converted` and links `reservationId`
+- Admin UI at `/admin/abandoned-carts`; rows carry a `new | contacted | lost` status and an "x/4 champs" completeness column
+
+### 3. Reservation submit
+`POST /api/reservations` validates, creates the `Reservation`, then runs follow-up work inside Next's `after()` so the response is not blocked: marking the draft converted and syncing the Sheet.
+
+### 4. Thank-you page and conversion tracking
+Full-page redirect to `/courses/[slug]/thank-you?reservation=<id>` — `robots: { index: false }` — which hosts both trackers. **Preserve the `?reservation=` id in any change to this flow, or the Purchase conversion silently stops firing.**
+
+---
+
+## Admin Tooling
+
+### Exports
+[lib/export/table-export.ts](lib/export/table-export.ts) — `exportTable()` renders any column set to **CSV, Excel (exceljs) or PDF (jspdf + jspdf-autotable)**, entirely client-side. Surfaced through [components/admin/ExportMenu.tsx](components/admin/ExportMenu.tsx) on the reservations, signups and abandoned-carts tables.
+
+### Google Sheets sync (reservations)
+- [lib/integrations/google-sheets.ts](lib/integrations/google-sheets.ts) — a thin REST client over the Sheets and Drive APIs using a service-account JWT (`google-auth-library`). No `googleapis` SDK
+- [lib/integrations/reservations-sheet.ts](lib/integrations/reservations-sheet.ts) — builds the French header matrix and rewrites the tab. Creates the spreadsheet on first use (or adopts `GOOGLE_SHEETS_RESERVATIONS_ID`), shares it with `GOOGLE_SHEETS_SHARE_EMAIL`, and records it in the `SheetLink` collection
+- Triggered automatically after each reservation, and manually via `POST /api/admin/reservations/sheet` ([components/admin/ReservationsSheetButton.tsx](components/admin/ReservationsSheetButton.tsx))
+- Note the deliberate `import "@/models/Course"` side-effect import — without it the `populate("courseId")` fails in a cold serverless context
+
+### Pagination and filtering
+[lib/data/reservation-record.ts](lib/data/reservation-record.ts) and [lib/data/abandoned-cart.ts](lib/data/abandoned-cart.ts) each export a `build*Filter()` plus status-count aggregation helpers, paging at 25 rows. Other admin lists are still unpaginated.
+
+---
+
+## Database Structure (17 MongoDB Models)
+
+All models use Mongoose with `{ timestamps: true }`. The pattern `mongoose.models.X || mongoose.model("X", schema)` prevents re-registration during hot reload.
 
 ### Relationships
 - **Course** → `categoryId` refs **Category** (populated on read)
 - **Reservation** → `courseId` refs **Course** (populated on read)
-- **Post.likes** → Array of ObjectId refs **AdminUser**
-- All other models are independent collections
+- **AbandonedCart** → `courseId` refs **Course**, `reservationId` refs **Reservation** once converted
+- **Post.likes** → array of ObjectIds refs **AdminUser**
+- All other collections are independent
 
 ### Model-by-Model Summary
 
 | Model | Key Fields | Purpose |
 |---|---|---|
-| AdminUser | email (unique), passwordHash, name, role | Single admin account (bootstrap from env vars) |
+| AdminUser | email (unique), passwordHash, name, role | Admin account (bootstrap from env) |
+| MarketerUser | email (unique), passwordHash, name, role | Marketer account (bootstrap from env) |
 | Category | name, slug (unique), description, sortOrder | Course taxonomy |
-| Course | title, slug (unique), categoryId, instructor, date, location, price, imageUrl, published, featured, showOnHomepage, maxSeats | Core product catalog |
-| WorkshopImage | title, imageUrl, order, active | Photo gallery |
+| Course | title, slug (unique), categoryId, **courseType** (`formation`\|`cycle`), **cycleDates[]**, instructor, date, time, location, price, imageUrl, **youtubeUrl**, **questions[]**, published, featured, showOnHomepage, maxSeats | Core catalog |
+| Reservation | courseId, fullName, email, phone, wilaya, profession, **answers[]**, status (`pending`\|`confirmed`\|**`paid`**\|`cancelled`) | Course bookings |
+| AbandonedCart | courseId, sessionKey, partial contact fields, answers[], attempts, status (`new`\|`contacted`\|`lost`), converted, convertedAt, reservationId, lastActivityAt | Partially filled reservation forms |
+| ClientSignup | fullName, email, phone, wilaya, profession, courseInterest, newsletterOptIn, status | General interest registrations |
+| ContactMessage | fullName, email, phone, message, status (`new`\|`read`\|`archived`) | Contact form inbox |
+| NewsletterSubscriber | email (unique) | Email list |
+| Feedback | fullName, message, rating, approved, showOnHomepage | Moderated testimonials |
+| Post | caption, content, imageUrl, slug, published, likes[] | Blog articles |
 | FAQ | question, answer, category, published, sortOrder | FAQ accordion |
 | Mentor | name, title, imageUrl, bio, specialty, active, showOnHomepage, order | Instructor profiles |
-| Feedback | fullName, message, rating, approved, showOnHomepage | Testimonials (moderated) |
-| Post | caption, content, imageUrl, slug, published, likes[] | Blog articles |
-| ContactMessage | fullName, email, message, phone, status (new/read/archived) | Contact form inbox |
-| NewsletterSubscriber | email (unique) | Email list |
-| Reservation | courseId, fullName, email, phone, wilaya, profession, status (pending/confirmed/cancelled) | Course bookings |
-| ClientSignup | fullName, email, phone, wilaya, profession, courseInterest, newsletterOptIn, status | General interest registrations |
-| MarketerUser | email (unique), passwordHash, name, role | Marketer account (bootstrap from env vars) |
-| Pixel | platform (meta\|tiktok, unique), pixelId, label, active, verifiedAt, notes | Meta/TikTok tracking pixels |
-
----
+| Sponsor | name, imageUrl, websiteUrl, order, active | Partner logos (`SponsorsBar`) |
+| WorkshopImage | title, imageUrl, order, active | Photo gallery |
+| Pixel | platform (`meta`\|`tiktok`, unique), pixelId, label, active, verifiedAt, notes | Tracking pixels |
+| SheetLink | resource (unique), spreadsheetId, spreadsheetUrl, sheetId, lastSyncedAt | Google Sheets mirror bookkeeping |
 
 ## Architecture Overview
 
@@ -486,23 +418,28 @@ Form Component (useForm + zodResolver)
 
 ## Authentication & Authorization
 
-### Flow
-1. **Login:** `POST /api/admin/login` → Zod validates → `authenticateAdmin()` checks DB first, then falls back to env vars → JWT signed with `jose` (HS256, 7d) → set as `httpOnly`, `sameSite: lax`, `secure` (in production) cookie named `dentova_admin_session`
-2. **Middleware:** `middleware.ts` runs on `/admin/:path*` and `/api/admin/:path*` (except `/admin/login` and `/api/admin/login`) → reads cookie → `verifySessionToken()` → redirects to `/admin/login?next=...` on failure
-3. **Logout:** `POST /api/admin/logout` → clears cookie with `maxAge: 0` → redirects to `/`
-4. **Admin-Like:** `POST /api/admin/posts/like` checks `getAdminSession()` internally (not via middleware pattern — direct cookie read)
+Two parallel roles — **admin** and **marketer** — sharing one JWT secret, one login page, and one middleware, but separate cookies and separate areas of the app.
 
-### Admin User Bootstrap
-- `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` in `.env.local`
-- `npm run seed:admin` → `scripts/seed-admin.ts` → `upsertAdminFromEnv()` → upserts into MongoDB
-- On login, `authenticateAdmin()` falls back to env vars if no DB user exists yet, then upserts
+### Unified Login
+- **One page for both roles:** `/login` ([app/login/page.tsx](app/login/page.tsx)) rendering [components/auth/UnifiedLoginForm.tsx](components/auth/UnifiedLoginForm.tsx)
+- `POST /api/auth/login` tries `authenticateMarketer()` **first**, then `authenticateAdmin()`, and returns `{ ok, role, redirectTo }` so the client knows where to go (`/marketer` or `/admin`)
+- The legacy `/admin/login` and `/marketer/login` pages still exist; `/login` is the current entry point
 
-### Session Check in Pages
-- `app/(site)/layout.tsx` calls `getAdminSession()` to pass `authenticated` prop to Navbar
-- `app/admin/layout.tsx` calls `getAdminSession()` to determine if AdminShell renders
-- Admin pages themselves are NOT individually protected (middleware handles that)
+### Sessions
+- JWT signed with `jose`, HS256, 7-day expiry, secret `ADMIN_JWT_SECRET`
+- Cookies are `httpOnly`, `sameSite: lax`, `secure` in production:
+  - `dentova_admin_session` → payload `{ adminId, email, role: "admin" }`
+  - `dentova_marketer_session` → payload `{ marketerId, email, role: "marketer" }`
+- Helpers live in [lib/auth/cookies.ts](lib/auth/cookies.ts) and [lib/auth/session.ts](lib/auth/session.ts)
 
----
+### Authorization
+[middleware.ts](middleware.ts) guards `/admin/*`, `/api/admin/*`, `/marketer/*`, `/api/marketer/*`. It checks the **role claim**, not merely the presence of a token — an admin cookie is rejected at `/marketer` and vice versa. Failures redirect to `/login?next=<path>`.
+
+`POST /api/admin/posts/like` is the exception: it reads the session directly via `getAdminSession()` rather than relying on the matcher.
+
+### Bootstrap
+- `npm run seed:admin` → [scripts/seed-admin.ts](scripts/seed-admin.ts) upserts **both** accounts from env vars
+- `authenticateAdmin()` / `authenticateMarketer()` check the DB first, then fall back to env vars and upsert — so first-time login works before seeding
 
 ## Design System
 
@@ -605,7 +542,7 @@ export async function POST(request: Request) {
 | Component | File | Role |
 |---|---|---|
 | RootLayout | [app/layout.tsx](app/layout.tsx) | Fonts, metadata, Toaster |
-| SiteLayout | [app/(site)/layout.tsx](app/(site)/layout.tsx) | Navbar + Footer, force-dynamic |
+| SiteLayout | [app/(site)/layout.tsx](<app/(site)/layout.tsx>) | Navbar + Footer, force-dynamic |
 | AdminLayout | [app/admin/layout.tsx](app/admin/layout.tsx) | AdminShell with session |
 | AdminShell | [components/admin/AdminShell.tsx](components/admin/AdminShell.tsx) | Sidebar + TopBar + MobileDrawer + content |
 
@@ -651,34 +588,36 @@ export async function POST(request: Request) {
 
 ## Environment Variables
 
-Defined in `.env.local` (contains production credentials — **never commit**):
+Defined in `.env.local` (contains production credentials — **never commit**; `.gitignore` covers `.env*.local`):
 
 | Variable | Required | Purpose |
 |---|---|---|
 | `MONGODB_URI` | Yes | MongoDB Atlas connection string |
-| `ADMIN_JWT_SECRET` | Yes | HS256 signing key for JWT sessions |
-| `NEXT_PUBLIC_SITE_URL` | Yes | Canonical URL (metadataBase, used in Vercel) |
+| `ADMIN_JWT_SECRET` | Yes | HS256 signing key — shared by admin and marketer sessions |
+| `NEXT_PUBLIC_SITE_URL` | Yes | Canonical origin. Feeds `metadataBase`, `siteConfig.url` and course structured data. **Set this in Vercel**, not just locally |
 | `ADMIN_EMAIL` | Yes | Admin login email (bootstrap + fallback auth) |
-| `ADMIN_PASSWORD` | Yes | Admin login password (bootstrap + fallback auth) |
-| `ADMIN_NAME` | Optional | Display name for admin (default: "Admin1") |
+| `ADMIN_PASSWORD` | Yes | Admin login password |
+| `ADMIN_NAME` | Optional | Admin display name (default: "Admin1") |
 | `MARKETER_EMAIL` | Optional* | Marketer login email (*required for marketer access) |
 | `MARKETER_PASSWORD` | Optional* | Marketer login password |
-| `MARKETER_NAME` | Optional | Display name for marketer (default: "Dentova Marketing") |
-| `CLOUDINARY_CLOUD_NAME` | Optional* | Cloudinary cloud name (*required for image upload) |
+| `MARKETER_NAME` | Optional | Marketer display name (default: "Dentova Marketing") |
+| `CLOUDINARY_CLOUD_NAME` | Optional* | *Required for image upload |
 | `CLOUDINARY_API_KEY` | Optional* | Cloudinary API key |
 | `CLOUDINARY_API_SECRET` | Optional* | Cloudinary API secret |
-| `SMTP_HOST` | Optional | SMTP server hostname |
-| `SMTP_PORT` | Optional | SMTP port (default: 587) |
-| `SMTP_USER` | Optional | SMTP username |
-| `SMTP_PASS` | Optional | SMTP password |
-| `CONTACT_TO_EMAIL` | Optional | Destination email for contact notifications |
-| `NEXT_PUBLIC_META_PIXEL_ID` | Optional | Fallback Meta pixel ID when no active DB pixel exists (see Marketing & Conversion Tracking) |
-| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | Optional* | Google service-account email (*required for reservations → Google Sheets sync) |
-| `GOOGLE_PRIVATE_KEY` | Optional* | Service-account private key (escape newlines as `\n`) |
+| `SMTP_HOST` | Optional* | *All four SMTP vars plus `CONTACT_TO_EMAIL` are required together |
+| `SMTP_PORT` | Optional | SMTP port (default 587; 465 switches to implicit TLS) |
+| `SMTP_USER` | Optional* | SMTP username — also used as the `From` address |
+| `SMTP_PASS` | Optional* | SMTP password (for Gmail: a 16-character App Password) |
+| `CONTACT_TO_EMAIL` | Optional* | Destination inbox for contact notifications |
+| `NEXT_PUBLIC_GTM_ID` | Optional | Google Tag Manager container ID |
+| `NEXT_PUBLIC_META_PIXEL_ID` | Optional | Fallback Meta pixel ID when no active DB pixel exists |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | Optional* | *Required for the reservations → Google Sheets sync |
+| `GOOGLE_PRIVATE_KEY` | Optional* | Service-account private key (newlines escaped as `
+`) |
 | `GOOGLE_SHEETS_SHARE_EMAIL` | Optional | Google account granted editor access to auto-created sheets |
-| `GOOGLE_SHEETS_RESERVATIONS_ID` | Optional | Existing spreadsheet ID to sync into instead of creating a new one |
+| `GOOGLE_SHEETS_RESERVATIONS_ID` | Optional | Existing spreadsheet ID to sync into instead of creating one |
 
----
+Every optional integration degrades silently rather than throwing — check the env var before concluding a feature is broken.
 
 ## Deployment
 
@@ -755,22 +694,21 @@ Every page that fetches data uses `export const dynamic = "force-dynamic"` to di
 
 ## Known Issues & Observations
 
-1. **No testing:** Zero automated tests — critical for a production app with 11 models and payment-adjacent reservations
-2. **No rate limiting:** API routes have no rate limiting — forms could be spammed
-3. **Single admin role:** The `AdminUser` schema has a `role` enum of `["admin"]` only — no role-based access control granularity
-4. **Cloudinary not configured:** Image upload UI exists but won't work until Cloudinary env vars are set. Admin forms using `ImageUploadField` may fail silently or throw.
-5. **SMTP not configured:** Contact form saves to DB but won't send email notifications to the team.
-6. **Reservation system is CRM-only:** Reservations are captured but there's no capacity tracking against `maxSeats` — no automatic waitlisting or seat counting
-7. **Post.likes use AdminUser ObjectIds:** Only admins can like posts — public users see the like button but it's disabled or redirects to login
-8. **No pagination on list pages:** Admin tables load all records at once (`find({})` with no skip/limit) — could be slow with many records
-9. **Blog post content is plain text:** Stored and rendered as `whitespace-pre-wrap` — no rich text/Markdown support
-10. **Hardcoded locations in CoursesSection:** The location filter is hardcoded to "Alger", "Oran", "Constantine" — not dynamic from course data
-11. **`to_get_inspired_from/` directory:** Contains an old Vite/React prototype — not part of the app but ships in the repo
-12. **`design_assets/` gitignored:** The brand guidelines, source files, and fonts are excluded from git — only the processed/copied versions remain in `public/`
-13. **No i18n framework:** French translation is hardcoded inline — no react-intl/next-intl
-14. **Client-side navigation on logout:** `AdminLoginForm` uses `window.location.assign()` instead of Next.js router for redirect after login
-
----
+1. **No testing:** Zero automated tests — no Jest/Vitest/Playwright config and no test files, despite 17 models and a reservation funnel
+2. **No rate limiting:** Public API routes (contact, feedback, newsletter, reservations, signup, reservation drafts) have no throttling. `POST /api/reservations/draft` fires repeatedly as a visitor types, so it is the most exposed
+3. **Single admin role:** `AdminUser.role` is an enum of `["admin"]` only — no granularity below the admin/marketer split
+4. **Cloudinary optional:** Image upload UI exists but requires `CLOUDINARY_*` env vars; without them `lib/cloudinary.ts` throws
+5. **SMTP optional:** `sendContactNotification()` silently returns `{ sent: false, reason: "mail_not_configured" }` when SMTP vars are unset. Contact messages still save to MongoDB — nobody is notified. Verify env vars before assuming mail is broken
+6. **No capacity enforcement:** `Course.maxSeats` is stored and displayed but never checked against reservation count — no waitlist, no sold-out state
+7. **Post.likes reference AdminUser:** only authenticated admins can like a blog post
+8. **Pagination is partial:** reservations and abandoned carts page at 25 rows (`RESERVATIONS_PAGE_SIZE`, `ABANDONED_CARTS_PAGE_SIZE`). Every other admin list still does `find({})` with no limit
+9. **Blog content is plain text:** rendered with `whitespace-pre-wrap` — no Markdown or rich text
+10. **Hardcoded locations:** the city filter in `CoursesSection` is fixed to Alger / Oran / Constantine rather than derived from course data
+11. **`to_get_inspired_from/`:** an old Vite/React prototype that still ships in the repo and fails `npm run lint` — lint errors from that directory are pre-existing, not yours
+12. **`HeroSection.previous.tsx`:** a superseded copy of the hero left in `components/public/`
+13. **`tsconfig.tsbuildinfo` is tracked:** a build artifact in git, so it shows as modified after every build
+14. **No i18n framework:** French copy is hardcoded inline
+15. **`NEXT_PUBLIC_SITE_URL` matters more than it looks:** it feeds `metadataBase`, `siteConfig.url`, the course Product markup and the Sheets links. If unset it falls back to `http://localhost:3000`
 
 ## Development Workflows
 
@@ -802,7 +740,7 @@ npm run seed:admin
 # Development
 npm run dev
 # → http://localhost:3000
-# Admin: http://localhost:3000/admin/login
+# Login: http://localhost:3000/login  (admin and marketer share this page)
 ```
 
 ---
@@ -818,7 +756,7 @@ npm run dev
 ### [lib/data/queries.ts](lib/data/queries.ts)
 - All functions check DB availability first via `ensureDb()`
 - `resolveCategory()` handles both populated and non-populated `categoryId` (defensive)
-- `getAdminStats()` returns counts for 11 collections (dashboard)
+- `getAdminStats()` returns 12 dashboard counts; several models are imported dynamically inside the `Promise.all` to keep the Edge/serverless bundle lean
 - `getUpcomingCourses()` filters by `date >= today`
 
 ### [lib/auth/admin-user.ts](lib/auth/admin-user.ts)
@@ -827,8 +765,10 @@ npm run dev
 
 ### [middleware.ts](middleware.ts)
 - Edge-compatible (uses `NextResponse`, no Node.js APIs)
-- `publicAdminPaths`: `/admin/login`, `/api/admin/login` (unprotected)
-- Redirect preserves intended destination via `?next=` query param
+- Matches `/admin/:path*`, `/api/admin/:path*`, `/marketer/:path*`, `/api/marketer/:path*`
+- `publicPaths`: `/login`, `/api/auth/login` — allowed through before any matcher logic
+- **Enforces role, not just presence of a token**: an admin cookie cannot reach `/marketer`, and vice versa. A token whose `role` claim does not match the area is rejected like a missing one.
+- All failures redirect to `/login?next=<original path>`
 
 ### [tailwind.config.ts](tailwind.config.ts)
 - All colors under `dentova.*` namespace — never use raw hex in components
