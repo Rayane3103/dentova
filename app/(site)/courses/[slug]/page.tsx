@@ -163,10 +163,13 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
       {/* ── Content: Image + Form side by side ── */}
       <Container className="py-12 lg:py-16">
         <div className="mx-auto max-w-5xl">
-          <div className="grid gap-10 lg:grid-cols-[1fr_380px] lg:items-start">
-            {/* Left column — image → description → details */}
-            <div className="min-w-0 space-y-7">
-              <div className="relative overflow-hidden rounded-2xl bg-white shadow-luxe">
+          <div className="flex flex-col gap-7 lg:grid lg:grid-cols-[1fr_380px] lg:items-start lg:gap-10">
+            {/* Left column — image → description → details.
+                On phones this wrapper is display:contents, so the image, the
+                description and the aside below can be reordered around each
+                other without moving anything in the HTML. */}
+            <div className="contents lg:block lg:min-w-0 lg:space-y-7">
+              <div className="order-1 relative min-w-0 overflow-hidden rounded-2xl bg-white shadow-luxe">
                 <Image
                   alt={course.title}
                   className="w-full object-contain"
@@ -182,7 +185,7 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
                 </div>
               </div>
 
-              <section>
+              <section className="order-3 min-w-0">
                 <h2 className="mb-4 text-2xl font-extrabold text-dentova-graphite">
                   À propos de cette formation
                 </h2>
@@ -191,7 +194,7 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
                 </div>
               </section>
 
-              <Card className="overflow-hidden">
+              <Card className="order-3 min-w-0 overflow-hidden">
                 <div className="border-b border-dentova-ash px-6 py-4">
                   <h2 className="flex items-center gap-2 text-lg font-extrabold text-dentova-graphite">
                     <CalendarDays className="h-5 w-5 text-dentova-teal" />
@@ -216,7 +219,7 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
               </Card>
 
               {isCycle ? (
-                <Card className="p-6">
+                <Card className="order-3 min-w-0 p-6">
                   <h2 className="mb-4 flex items-center gap-2 text-lg font-extrabold text-dentova-graphite">
                     <CalendarDays className="h-5 w-5 text-dentova-teal" />
                     Dates du cycle
@@ -240,7 +243,7 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
               ) : null}
 
               {youtubeEmbedUrl ? (
-                <section>
+                <section className="order-3 min-w-0">
                   <h2 className="mb-4 flex items-center gap-2 text-2xl font-extrabold text-dentova-graphite">
                     <PlayCircle className="h-6 w-6 text-dentova-teal" />
                     Lecture vidéo
@@ -263,7 +266,7 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
             </div>
 
             {/* Right column — Form + sidebar cards */}
-            <aside className="min-w-0 space-y-5 lg:sticky lg:top-24">
+            <aside className="order-2 min-w-0 space-y-5 lg:order-none lg:sticky lg:top-24">
               {/* Price card */}
               <CoursePriceCard
                 maxSeats={course.maxSeats}
