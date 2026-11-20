@@ -25,6 +25,12 @@ export const statusBadgeStyles = {
     "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
   cancelled:
     "bg-red-50 text-red-600 ring-1 ring-red-200",
+  paid:
+    "bg-teal-50 text-teal-700 ring-1 ring-teal-200",
+  spam:
+    "bg-rose-100 text-rose-700 ring-1 ring-rose-300",
+  archived:
+    "bg-slate-100 text-slate-500 ring-1 ring-slate-200",
   published:
     "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
   draft:

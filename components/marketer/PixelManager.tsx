@@ -23,10 +23,11 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 import { Button } from "@/components/ui/Button";
+import { Dropdown } from "@/components/ui/Dropdown";
 import { Input } from "@/components/ui/Input";
 import { pixelSchema } from "@/lib/validators/marketer";
 import { cn } from "@/lib/utils";
-import type { Pixel } from "@/types";
+import type { Pixel, PixelPlatform } from "@/types";
 
 type PixelFormValues = z.infer<typeof pixelSchema>;
 
@@ -657,23 +658,25 @@ ttq.load('${pixel.pixelId}');ttq.page();}(window,document,'ttq');
                 <span className="mb-1.5 block text-sm font-semibold text-slate-700">
                   Plateforme
                 </span>
-                <select
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm transition focus:border-dentova-navy focus:outline-none focus:ring-2 focus:ring-dentova-navy/20"
-                  {...register("platform", {
-                    onChange: () => {
-                      // Clear code inputs when platform changes
-                      setCodeInput("");
-                      setExtractedId(null);
-                      setExtractError(null);
-                    }
-                  })}
+                <Dropdown
+                  aria-label="Plateforme du pixel"
                   disabled={!!editingId}
-                >
-                  <option value="meta">
-                    Meta (Facebook / Instagram)
-                  </option>
-                  <option value="tiktok">TikTok</option>
-                </select>
+                  onChange={(next) => {
+                    setValue("platform", next as PixelPlatform, {
+                      shouldDirty: true,
+                      shouldValidate: true
+                    });
+                    // Clear code inputs when the platform changes
+                    setCodeInput("");
+                    setExtractedId(null);
+                    setExtractError(null);
+                  }}
+                  options={[
+                    { value: "meta", label: "Meta (Facebook / Instagram)" },
+                    { value: "tiktok", label: "TikTok" }
+                  ]}
+                  value={selectedPlatform}
+                />
               </label>
 
               {/* Pixel ID */}

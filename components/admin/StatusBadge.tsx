@@ -12,7 +12,10 @@ const variantLabels: Record<string, string> = {
   active: "Actif",
   inactive: "Inactif",
   contacted: "Contacté",
-  lost: "Perdu"
+  lost: "Perdu",
+  paid: "Payé",
+  spam: "Spam",
+  archived: "Archivé"
 };
 
 export function StatusBadge({

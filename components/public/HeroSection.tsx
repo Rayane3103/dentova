@@ -16,6 +16,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { MotionCounter } from "@/components/public/MotionCounter";
+import { SeatsLeftBadge } from "@/components/public/SeatsLeftBadge";
 import { formatPrice, formatShortDate } from "@/lib/format";
 import type { Course } from "@/types";
 
@@ -90,6 +91,11 @@ function HeroCoursePreview({ course }: { course: Course }) {
             {isCycle ? "Cycle" : "Formation"}
           </span>
         </div>
+
+        <SeatsLeftBadge
+          className="absolute right-4 top-4 z-10"
+          seatsLeft={course.seatsLeft}
+        />
       </div>
 
       <div className="flex flex-col justify-center gap-6 p-5 sm:p-6">
@@ -260,20 +266,20 @@ export function HeroSection({
                 mentors experts.
               </p>
 
-              <div className="mt-10 grid w-full max-w-3xl grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="mt-8 grid w-full max-w-3xl grid-cols-3 gap-2 sm:mt-10 sm:gap-3">
                 {homeStats.map((stat) => (
                   <div
-                    className="border-y border-white/10 bg-white/[0.06] px-5 py-5 backdrop-blur-sm"
+                    className="border-y border-white/10 bg-white/[0.06] px-3 py-4 backdrop-blur-sm sm:px-5 sm:py-5"
                     key={stat.label}
                   >
-                    <p className="font-display text-5xl font-black leading-none text-white">
+                    <p className="font-display text-2xl font-black leading-none text-white sm:text-4xl lg:text-5xl">
                       <MotionCounter
                         prefix={stat.prefix}
                         suffix={stat.suffix}
                         value={stat.value}
                       />
                     </p>
-                    <p className="mt-2 text-xs font-semibold uppercase text-white/60">
+                    <p className="mt-2 text-[10px] font-semibold uppercase leading-tight text-white/60 sm:text-xs">
                       {stat.label}
                     </p>
                   </div>

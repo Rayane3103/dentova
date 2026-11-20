@@ -21,7 +21,7 @@ const ReservationSchema = new Schema(
     status: {
       type: String,
       default: "pending",
-      enum: ["pending", "confirmed", "paid", "cancelled"]
+      enum: ["pending", "confirmed", "paid", "cancelled", "spam"]
     },
     answers: { type: [ReservationAnswerSchema], default: [] },
     wilaya: { type: String, required: true, trim: true }

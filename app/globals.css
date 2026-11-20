@@ -20,6 +20,14 @@
 
 html {
   scroll-behavior: smooth;
+  /* Keeps #anchor jumps clear of the fixed header. */
+  scroll-padding-top: 5rem;
+}
+
+@media (min-width: 1024px) {
+  html {
+    scroll-padding-top: 8rem;
+  }
 }
 
 body {

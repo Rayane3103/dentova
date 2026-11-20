@@ -54,6 +54,11 @@ const baseCourseSchema = z.object({
   instructor: z.string().min(2, "Instructor is required."),
   location: z.string().min(2, "Location is required."),
   maxSeats: z.coerce.number().int().positive().optional(),
+  // null clears the badge; "" is what an emptied number input sends.
+  seatsLeft: z
+    .union([z.literal(""), z.null(), z.coerce.number().int().min(0)])
+    .optional()
+    .transform((value) => (value === "" || value === undefined ? null : value)),
   price: z.coerce.number().min(0),
   questions: z.array(courseQuestionSchema).default([]),
   published: z.coerce.boolean().default(true),

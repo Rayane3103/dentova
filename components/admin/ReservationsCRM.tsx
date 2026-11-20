@@ -20,14 +20,14 @@ import { ExportMenu } from "@/components/admin/ExportMenu";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
+import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown";
 import { Textarea } from "@/components/ui/Textarea";
 import type { ReservationStatusCounts } from "@/lib/data/reservation-record";
 import type { ExportColumn } from "@/lib/export/table-export";
 import { cn } from "@/lib/utils";
-import type { ReservationAnswer } from "@/types";
+import type { ReservationAnswer, ReservationStatus } from "@/types";
 
-export type ReservationStatus = "pending" | "confirmed" | "paid" | "cancelled";
+export type { ReservationStatus };
 
 export type ReservationCourse = {
   id: string;
@@ -58,25 +58,28 @@ export type ReservationRecord = {
   wilaya: string;
 };
 
-const statusOptions = [
-  { value: "pending", label: "En attente" },
-  { value: "confirmed", label: "Confirmée" },
-  { value: "paid", label: "Payé" },
-  { value: "cancelled", label: "Annulée" }
+const statusOptions: DropdownOption[] = [
+  { value: "pending", label: "En attente", dotClassName: "bg-amber-400" },
+  { value: "confirmed", label: "Confirmée", dotClassName: "bg-emerald-500" },
+  { value: "paid", label: "Payé", dotClassName: "bg-sky-500" },
+  { value: "cancelled", label: "Annulée", dotClassName: "bg-red-500" },
+  { value: "spam", label: "Spam", dotClassName: "bg-rose-500" }
 ];
 
 const statusSelectStyles: Record<ReservationStatus, string> = {
   pending: "border-amber-200 bg-amber-50 text-amber-700",
   confirmed: "border-emerald-200 bg-emerald-50 text-emerald-700",
   paid: "border-sky-200 bg-sky-50 text-sky-700",
-  cancelled: "border-red-200 bg-red-50 text-red-600"
+  cancelled: "border-red-200 bg-red-50 text-red-600",
+  spam: "border-rose-300 bg-rose-100 text-rose-700"
 };
 
 const statusLabels: Record<ReservationStatus, string> = {
   pending: "En attente",
   confirmed: "Confirmée",
   paid: "Payé",
-  cancelled: "Annulée"
+  cancelled: "Annulée",
+  spam: "Spam"
 };
 
 function formatDate(value: string) {
@@ -407,37 +410,66 @@ export function ReservationsCRM({
           />
         </div>
         <div className="flex gap-3">
-          <Select
+          <Dropdown
+            aria-label="Filtrer par formation"
             className="w-44"
-            onChange={(event) => {
-              setCourseFilter(event.target.value);
+            onChange={(next) => {
+              setCourseFilter(next);
               setPage(1);
             }}
+            options={[
+              { value: "all", label: "Toutes les formations" },
+              ...courses.map((course) => ({
+                value: course.id,
+                label: course.title
+              }))
+            ]}
             size="sm"
             value={courseFilter}
-          >
-            <option value="all">Toutes les formations</option>
-            {courses.map((course) => (
-              <option key={course.id} value={course.id}>
-                {course.title}
-              </option>
-            ))}
-          </Select>
-          <Select
+          />
+          <Dropdown
+            aria-label="Filtrer par statut"
             className="w-44"
-            onChange={(event) => {
-              setStatusFilter(event.target.value as "all" | ReservationStatus);
+            onChange={(next) => {
+              setStatusFilter(next as "all" | ReservationStatus);
               setPage(1);
             }}
+            options={[
+              { value: "all", label: "Tous", hint: `(${counts.all})` },
+              {
+                value: "pending",
+                label: "En attente",
+                hint: `(${counts.pending})`,
+                dotClassName: "bg-amber-400"
+              },
+              {
+                value: "confirmed",
+                label: "Confirmées",
+                hint: `(${counts.confirmed})`,
+                dotClassName: "bg-emerald-500"
+              },
+              {
+                value: "paid",
+                label: "Payé",
+                hint: `(${counts.paid})`,
+                dotClassName: "bg-sky-500"
+              },
+              {
+                value: "cancelled",
+                label: "Annulées",
+                hint: `(${counts.cancelled})`,
+                dotClassName: "bg-red-500"
+              },
+              {
+                value: "spam",
+                label: "Spam",
+                hint: `(${counts.spam})`,
+                dotClassName: "bg-rose-500"
+              }
+            ]}
             size="sm"
             value={statusFilter}
-          >
-            <option value="all">Tous ({counts.all})</option>
-            <option value="pending">En attente ({counts.pending})</option>
-            <option value="confirmed">Confirmées ({counts.confirmed})</option>
-            <option value="paid">Payé ({counts.paid})</option>
-            <option value="cancelled">Annulées ({counts.cancelled})</option>
-          </Select>
+          />
           <ExportMenu
             columns={reservationExportColumns}
             countLabel={`${total} au total`}
@@ -466,22 +498,16 @@ export function ReservationsCRM({
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Select
+            <Dropdown
+              aria-label="Changer le statut de la sélection"
               className="w-40"
               disabled={bulkBusy}
-              onChange={(event) =>
-                setBulkStatus(event.target.value as ReservationStatus | "")
-              }
+              onChange={(next) => setBulkStatus(next as ReservationStatus | "")}
+              options={statusOptions}
+              placeholder="Changer le statut…"
               size="sm"
               value={bulkStatus}
-            >
-              <option value="">Changer le statut…</option>
-              {statusOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </Select>
+            />
             <Button
               disabled={!bulkStatus || bulkBusy}
               onClick={() => void applyBulkStatus()}
@@ -618,25 +644,23 @@ export function ReservationsCRM({
                           </span>
                         </td>
                         <td className="px-3 py-3">
-                          <select
-                            className={cn(
-                              "dentova-focus h-8 min-w-[130px] rounded-lg border px-2.5 text-xs font-bold uppercase tracking-wide transition",
-                              statusSelectStyles[row.status]
-                            )}
+                          <Dropdown
+                            aria-label={`Statut de ${row.fullName}`}
                             disabled={isSaving}
-                            onChange={(event) =>
+                            onChange={(next) =>
                               void patchReservation(row.id, {
-                                status: event.target.value as ReservationStatus
+                                status: next as ReservationStatus
                               })
                             }
+                            options={statusOptions}
+                            size="sm"
+                            tone="bare"
+                            triggerClassName={cn(
+                              "h-8 min-w-[130px] border px-2.5 text-xs font-bold uppercase tracking-wide",
+                              statusSelectStyles[row.status]
+                            )}
                             value={row.status}
-                          >
-                            {statusOptions.map((opt) => (
-                              <option key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </option>
-                            ))}
-                          </select>
+                          />
                         </td>
                         <td className="px-3 py-3 text-xs text-slate-400">
                           {formatDate(row.createdAt)}
@@ -743,13 +767,14 @@ export function ReservationsCRM({
                                 </label>
                                 <label className="block">
                                   <span className={adminLabelClassName}>Formation</span>
-                                  <Select
-                                    onChange={(event) => {
+                                  <Dropdown
+                                    aria-label="Formation réservée"
+                                    onChange={(next) => {
                                       const course = courses.find(
-                                        (item) => item.id === event.target.value
+                                        (item) => item.id === next
                                       );
                                       updateDraft(row.id, {
-                                        courseId: event.target.value,
+                                        courseId: next,
                                         courseTitle: course?.title || draft.courseTitle,
                                         coursePrice: course?.price ?? draft.coursePrice,
                                         courseDate: course?.date ?? draft.courseDate,
@@ -758,15 +783,13 @@ export function ReservationsCRM({
                                           course?.location ?? draft.courseLocation
                                       });
                                     }}
+                                    options={courses.map((course) => ({
+                                      value: course.id,
+                                      label: course.title
+                                    }))}
                                     size="sm"
                                     value={draft.courseId}
-                                  >
-                                    {courses.map((course) => (
-                                      <option key={course.id} value={course.id}>
-                                        {course.title}
-                                      </option>
-                                    ))}
-                                  </Select>
+                                  />
                                 </label>
                                 <label className="block sm:col-span-2 lg:col-span-3">
                                   <span className={adminLabelClassName}>Message</span>

@@ -10,15 +10,21 @@ import {
 } from "@/components/admin/admin-ui";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
+import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown";
 import type { AbandonedCartStatusCounts } from "@/lib/data/abandoned-cart";
 import { cn } from "@/lib/utils";
 import type { AbandonedCartRecord, AbandonedCartStatus } from "@/types";
 
-const statusLabels: Record<AbandonedCartStatus, string> = {
-  new: "À contacter",
-  contacted: "Contacté",
-  lost: "Perdu"
+const statusOptions: DropdownOption[] = [
+  { value: "new", label: "À contacter", dotClassName: "bg-blue-500" },
+  { value: "contacted", label: "Contacté", dotClassName: "bg-indigo-500" },
+  { value: "lost", label: "Perdu", dotClassName: "bg-slate-400" }
+];
+
+const statusTriggerStyles: Record<AbandonedCartStatus, string> = {
+  new: "border-blue-200 bg-blue-50 text-blue-700",
+  contacted: "border-indigo-200 bg-indigo-50 text-indigo-700",
+  lost: "border-slate-200 bg-slate-100 text-slate-500"
 };
 
 const tabs: { key: "all" | AbandonedCartStatus; label: string }[] = [
@@ -279,26 +285,22 @@ export function AbandonedCartsList({
                     />
                   </td>
                   <td className={tableCellClassName}>
-                    <Select
+                    <Dropdown
+                      aria-label="Statut du panier"
                       className="w-[150px]"
                       disabled={savingId === cart.id}
-                      onChange={(event) =>
-                        updateStatus(
-                          cart.id,
-                          event.target.value as AbandonedCartStatus
-                        )
+                      onChange={(next) =>
+                        updateStatus(cart.id, next as AbandonedCartStatus)
                       }
+                      options={statusOptions}
                       size="sm"
-                      value={cart.status}
-                    >
-                      {(Object.keys(statusLabels) as AbandonedCartStatus[]).map(
-                        (key) => (
-                          <option key={key} value={key}>
-                            {statusLabels[key]}
-                          </option>
-                        )
+                      tone="bare"
+                      triggerClassName={cn(
+                        "border text-xs font-bold uppercase tracking-wide",
+                        statusTriggerStyles[cart.status]
                       )}
-                    </Select>
+                      value={cart.status}
+                    />
                   </td>
                 </tr>
               ))}

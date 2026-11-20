@@ -13,7 +13,7 @@ import { adminFormClassName, adminLabelClassName } from "@/components/admin/admi
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
+import { Dropdown } from "@/components/ui/Dropdown";
 import { Textarea } from "@/components/ui/Textarea";
 import { siteConfig } from "@/lib/constants";
 import { courseSchema } from "@/lib/validators/course";
@@ -81,6 +81,7 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
       instructor: initialValues?.instructor || "",
       location: initialValues?.location || "Alger",
       maxSeats: initialValues?.maxSeats,
+      seatsLeft: initialValues?.seatsLeft,
       price: initialValues?.price ?? 0,
       published: initialValues?.published ?? true,
       questions: initialValues?.questions ?? [],
@@ -98,6 +99,7 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
   const instructor = watch("instructor");
   const questions = (watch("questions") ?? []) as CourseQuestion[];
   const courseType = watch("courseType");
+  const categoryId = watch("categoryId");
   const isCycle = courseType === "cycle";
   const selectedMentorValue = mentors.some((mentor) => mentor.name === instructor)
     ? instructor
@@ -184,6 +186,7 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
         ? filledCycleDates[0]
         : toDateInputValue(values.date),
       maxSeats: Number.isFinite(values.maxSeats) ? values.maxSeats : undefined,
+      seatsLeft: Number.isFinite(values.seatsLeft) ? values.seatsLeft : null,
       questions: cleanedQuestions
     };
 
@@ -256,39 +259,47 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
           <span className={adminLabelClassName}>Categorie *</span>
-          <Select size="sm" {...register("categoryId")}>
-            <option value="">Selectionner</option>
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </Select>
+          <Dropdown
+            aria-label="Catégorie de la formation"
+            onChange={(next) =>
+              setValue("categoryId", next, {
+                shouldDirty: true,
+                shouldValidate: true
+              })
+            }
+            options={categories.map((category) => ({
+              value: category.id,
+              label: category.name
+            }))}
+            placeholder="Selectionner"
+            size="sm"
+            value={categoryId || ""}
+          />
           {errors.categoryId ? <p className="mt-1 text-sm text-red-600">{errors.categoryId.message}</p> : null}
         </label>
         <div className="block">
           <span className={adminLabelClassName}>Formateur *</span>
           <div className="space-y-2">
-            <Select
-              onChange={(event) => {
-                const value = event.target.value;
-                setValue("instructor", value === "custom" ? "" : value, {
+            <Dropdown
+              aria-label="Formateur"
+              onChange={(next) => {
+                setValue("instructor", next === "custom" ? "" : next, {
                   shouldDirty: true,
                   shouldValidate: true
                 });
               }}
+              options={[
+                ...mentors.map((mentor) => ({
+                  value: mentor.name,
+                  label: mentor.name,
+                  hint: mentor.title ? `- ${mentor.title}` : undefined
+                })),
+                { value: "custom", label: "Nouveau formateur" }
+              ]}
+              placeholder="Selectionner un mentor"
               size="sm"
               value={selectedMentorValue}
-            >
-              <option value="">Selectionner un mentor</option>
-              {mentors.map((mentor) => (
-                <option key={mentor.id} value={mentor.name}>
-                  {mentor.name}
-                  {mentor.title ? ` - ${mentor.title}` : ""}
-                </option>
-              ))}
-              <option value="custom">Nouveau formateur</option>
-            </Select>
+            />
             <Input
               placeholder="Nom du formateur"
               size="sm"
@@ -395,17 +406,41 @@ export function CourseForm({ courseId, initialValues }: CourseFormProps) {
         </label>
       </div>
 
-      <label className="block">
-        <span className={adminLabelClassName}>Places max</span>
-        <Input
-          min="1"
-          size="sm"
-          type="number"
-          {...register("maxSeats", {
-            setValueAs: (value) => (value === "" ? undefined : Number(value))
-          })}
-        />
-      </label>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block">
+          <span className={adminLabelClassName}>Places max</span>
+          <Input
+            min="1"
+            size="sm"
+            type="number"
+            {...register("maxSeats", {
+              setValueAs: (value) => (value === "" ? undefined : Number(value))
+            })}
+          />
+          <p className="mt-1.5 text-xs text-slate-400">
+            Capacité interne. Non affichée sur le site.
+          </p>
+        </label>
+        <label className="block">
+          <span className={adminLabelClassName}>Places restantes (optionnel)</span>
+          <Input
+            min="0"
+            placeholder="Ex. 7"
+            size="sm"
+            type="number"
+            {...register("seatsLeft", {
+              setValueAs: (value) => (value === "" ? undefined : Number(value))
+            })}
+          />
+          <p className="mt-1.5 text-xs text-slate-400">
+            Affiché en badge sur le site. Ce nombre ne diminue pas automatiquement
+            après une réservation : laissez vide pour masquer le badge.
+          </p>
+          {errors.seatsLeft ? (
+            <p className="mt-1 text-sm text-red-600">{errors.seatsLeft.message}</p>
+          ) : null}
+        </label>
+      </div>
 
       <CourseQuestionsBuilder
         onChange={(next) =>

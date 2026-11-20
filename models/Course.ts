@@ -33,6 +33,7 @@ const CourseSchema = new Schema(
     instructor: { type: String, required: true, trim: true },
     location: { type: String, required: true, trim: true },
     maxSeats: { type: Number },
+    seatsLeft: { type: Number, min: 0 },
     price: { type: Number, required: true },
     questions: { type: [CourseQuestionSchema], default: [] },
     published: { type: Boolean, default: true },

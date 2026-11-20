@@ -111,6 +111,7 @@ export function serializeCourse(doc: MongoDoc, category: Category): Course {
     showOnHomepage: Boolean(doc.showOnHomepage),
     published: Boolean(doc.published),
     maxSeats: doc.maxSeats ? Number(doc.maxSeats) : undefined,
+    seatsLeft: doc.seatsLeft != null ? Number(doc.seatsLeft) : undefined,
     youtubeUrl: doc.youtubeUrl ? String(doc.youtubeUrl) : undefined,
     questions: serializeCourseQuestions(doc.questions)
   };

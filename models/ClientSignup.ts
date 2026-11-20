@@ -11,7 +11,7 @@ const ClientSignupSchema = new Schema(
     profession: { type: String, trim: true },
     status: {
       type: String,
-      enum: ["new", "contacted", "archived"],
+      enum: ["new", "contacted", "archived", "spam"],
       default: "new"
     },
     wilaya: { type: String, trim: true }

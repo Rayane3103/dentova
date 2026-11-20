@@ -41,11 +41,19 @@ export type Course = CourseStatus & {
   imageUrl: string;
   imagePublicId?: string;
   maxSeats?: number;
+  seatsLeft?: number;
   youtubeUrl?: string;
   questions: CourseQuestion[];
 };
 
-export type ReservationStatus = "pending" | "confirmed" | "paid" | "cancelled";
+export type ReservationStatus =
+  | "pending"
+  | "confirmed"
+  | "paid"
+  | "cancelled"
+  | "spam";
+
+export type SignupStatus = "new" | "contacted" | "archived" | "spam";
 
 export type ReservationAnswer = {
   questionId: string;

@@ -1,6 +1,7 @@
 import { ArrowRight, CalendarDays, MapPin } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { SeatsLeftBadge } from "@/components/public/SeatsLeftBadge";
 import { formatPrice, formatShortDate } from "@/lib/format";
 import type { Course } from "@/types";
 
@@ -29,6 +30,10 @@ export function CourseCard({ course }: { course: Course }) {
             {isCycle ? "Cycle" : "Formation"}
           </span>
         </div>
+        <SeatsLeftBadge
+          className="absolute right-4 top-4 z-10"
+          seatsLeft={course.seatsLeft}
+        />
       </div>
 
       <div className="flex flex-1 flex-col p-5">

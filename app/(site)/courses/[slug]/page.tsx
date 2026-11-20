@@ -124,14 +124,14 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
         {course.imageUrl ? (
           <Image
             alt={course.title}
-            className="absolute inset-0 -z-20 object-cover"
+            className="absolute inset-0 -z-20 scale-110 object-cover blur-[6px] sm:scale-100 sm:blur-0"
             fill
             priority
             sizes="100vw"
             src={course.imageUrl}
           />
         ) : null}
-        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-dentova-graphite via-dentova-graphite/85 to-dentova-graphite/50" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-dentova-graphite via-dentova-graphite/95 to-dentova-graphite/75 sm:via-dentova-graphite/85 sm:to-dentova-graphite/50" />
 
         <Container>
           <div className="mx-auto max-w-3xl text-center">
@@ -165,7 +165,7 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
         <div className="mx-auto max-w-5xl">
           <div className="grid gap-10 lg:grid-cols-[1fr_380px] lg:items-start">
             {/* Left column — image → description → details */}
-            <div className="space-y-7">
+            <div className="min-w-0 space-y-7">
               <div className="relative overflow-hidden rounded-2xl bg-white shadow-luxe">
                 <Image
                   alt={course.title}
@@ -263,9 +263,13 @@ export default async function CourseDetailPage({ params }: CoursePageProps) {
             </div>
 
             {/* Right column — Form + sidebar cards */}
-            <aside className="space-y-5 lg:sticky lg:top-24">
+            <aside className="min-w-0 space-y-5 lg:sticky lg:top-24">
               {/* Price card */}
-              <CoursePriceCard maxSeats={course.maxSeats} price={course.price} />
+              <CoursePriceCard
+                maxSeats={course.maxSeats}
+                price={course.price}
+                seatsLeft={course.seatsLeft}
+              />
 
               <ReservationForm course={course} />
 

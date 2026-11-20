@@ -1,8 +1,8 @@
 "use client";
 
-import { AlertCircle, Award, Filter, Info } from "lucide-react";
+import { AlertCircle, Award, ChevronRight, Filter, Info } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CourseCard } from "@/components/public/CourseCard";
 import { Container } from "@/components/ui/Container";
 import { ParallaxBlob } from "@/components/public/ParallaxBlob";
@@ -29,6 +29,8 @@ export function CoursesSection({
   const [activeCourseType, setActiveCourseType] = useState<"all" | "formation" | "cycle">("all");
   const [activeCategory, setActiveCategory] = useState("all");
   const [activeLocation, setActiveLocation] = useState("all");
+  const categoryScrollerRef = useRef<HTMLDivElement>(null);
+  const [categoriesOverflow, setCategoriesOverflow] = useState(false);
 
   const categories = [
     { id: "all", label: "Toutes" },
@@ -37,6 +39,21 @@ export function CoursesSection({
       label: cat.name
     }))
   ];
+
+  /** The thematic filters scroll sideways — show a hint while more remain. */
+  const syncCategoryOverflow = useCallback(() => {
+    const scroller = categoryScrollerRef.current;
+    if (!scroller) return;
+    const remaining =
+      scroller.scrollWidth - scroller.clientWidth - scroller.scrollLeft;
+    setCategoriesOverflow(remaining > 24);
+  }, []);
+
+  useEffect(() => {
+    syncCategoryOverflow();
+    window.addEventListener("resize", syncCategoryOverflow);
+    return () => window.removeEventListener("resize", syncCategoryOverflow);
+  }, [syncCategoryOverflow]);
 
   const courses = useMemo(() => {
     const filtered = initialCourses.filter((course) => {
@@ -146,22 +163,38 @@ export function CoursesSection({
               <Filter className="h-2.5 w-2.5 text-dentova-teal-400" />
               Filtrer par Thematique :
             </span>
-            <div className="scrollbar-none flex items-center gap-2 overflow-x-auto pb-2 font-medium">
-              {categories.map((cat) => (
-                <button
-                  className={cn(
-                    "cursor-pointer whitespace-nowrap rounded-xl border px-4 py-2 text-xs font-bold transition-all focus:outline-none",
-                    activeCategory === cat.id
-                      ? "scale-105 border-dentova-teal-400 bg-dentova-teal-500/20 font-black text-dentova-teal-300"
-                      : "border-white/5 bg-white/5 text-dentova-navy-300 hover:bg-white/10 hover:text-white"
-                  )}
-                  key={cat.id}
-                  onClick={() => setActiveCategory(cat.id)}
-                  type="button"
-                >
-                  {cat.label}
-                </button>
-              ))}
+            <div className="relative">
+              <div
+                className="scrollbar-none flex snap-x items-center gap-2 overflow-x-auto scroll-smooth pb-2 pr-14 font-medium"
+                onScroll={syncCategoryOverflow}
+                ref={categoryScrollerRef}
+              >
+                {categories.map((cat) => (
+                  <button
+                    className={cn(
+                      "shrink-0 cursor-pointer snap-start whitespace-nowrap rounded-xl border px-4 py-2 text-xs font-bold transition-all focus:outline-none",
+                      activeCategory === cat.id
+                        ? "scale-105 border-dentova-teal-400 bg-dentova-teal-500/20 font-black text-dentova-teal-300"
+                        : "border-white/5 bg-white/5 text-dentova-navy-300 hover:bg-white/10 hover:text-white"
+                    )}
+                    key={cat.id}
+                    onClick={() => setActiveCategory(cat.id)}
+                    type="button"
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+              <div
+                aria-hidden="true"
+                className={cn(
+                  "pointer-events-none absolute inset-y-0 right-0 flex w-14 items-center justify-end pb-2 transition-opacity duration-200",
+                  "bg-gradient-to-l from-dentova-navy-950 via-dentova-navy-950/85 to-transparent",
+                  categoriesOverflow ? "opacity-100" : "opacity-0"
+                )}
+              >
+                <ChevronRight className="h-4 w-4 text-dentova-teal-300" />
+              </div>
             </div>
           </div>
 

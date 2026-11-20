@@ -10,7 +10,7 @@ import { adminFormClassName, adminLabelClassName } from "@/components/admin/admi
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
+import { Dropdown } from "@/components/ui/Dropdown";
 import { Textarea } from "@/components/ui/Textarea";
 import { faqSchema } from "@/lib/validators/content";
 
@@ -27,7 +27,9 @@ export function FAQForm({
   const {
     formState: { errors, isSubmitting },
     handleSubmit,
-    register
+    register,
+    setValue,
+    watch
   } = useForm<FAQFormValues>({
     defaultValues: {
       answer: initialValues?.answer || "",
@@ -73,12 +75,20 @@ export function FAQForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
           <span className={adminLabelClassName}>Categorie</span>
-          <Select size="sm" {...register("category")}>
-            <option value="General">General</option>
-            <option value="Formations">Formations</option>
-            <option value="Certification">Certification</option>
-            <option value="Paiement">Paiement</option>
-          </Select>
+          <Dropdown
+            aria-label="Categorie de la FAQ"
+            onChange={(next) =>
+              setValue("category", next, { shouldDirty: true, shouldValidate: true })
+            }
+            options={[
+              { value: "General", label: "General" },
+              { value: "Formations", label: "Formations" },
+              { value: "Certification", label: "Certification" },
+              { value: "Paiement", label: "Paiement" }
+            ]}
+            size="sm"
+            value={watch("category") || "General"}
+          />
         </label>
         <label className="block">
           <span className={adminLabelClassName}>Ordre</span>

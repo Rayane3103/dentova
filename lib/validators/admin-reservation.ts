@@ -4,7 +4,8 @@ export const reservationStatusSchema = z.enum([
   "pending",
   "confirmed",
   "paid",
-  "cancelled"
+  "cancelled",
+  "spam"
 ]);
 
 export const adminReservationUpdateSchema = z.object({

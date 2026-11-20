@@ -1,12 +1,18 @@
+import { SeatsLeftBadge } from "@/components/public/SeatsLeftBadge";
 import { Card } from "@/components/ui/Card";
 import { formatMetaSelectablePrice } from "@/lib/format";
 
 type CoursePriceCardProps = {
   price: number;
   maxSeats?: number;
+  seatsLeft?: number | null;
 };
 
-export function CoursePriceCard({ price, maxSeats }: CoursePriceCardProps) {
+export function CoursePriceCard({
+  price,
+  maxSeats,
+  seatsLeft
+}: CoursePriceCardProps) {
   return (
     <Card className="overflow-hidden">
       <div className="bg-dentova-graphite px-6 py-5 text-center text-white">
@@ -20,6 +26,11 @@ export function CoursePriceCard({ price, maxSeats }: CoursePriceCardProps) {
           </p>
         ) : null}
       </div>
+      {seatsLeft != null ? (
+        <div className="flex justify-center bg-white px-6 py-3">
+          <SeatsLeftBadge seatsLeft={seatsLeft} variant="inline" />
+        </div>
+      ) : null}
     </Card>
   );
 }

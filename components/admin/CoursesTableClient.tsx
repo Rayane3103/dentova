@@ -74,6 +74,30 @@ const columns: DataTableColumn<Course>[] = [
     )
   },
   {
+    key: "seatsLeft",
+    header: "Places",
+    sortable: true,
+    hidden: "lg",
+    render: (course) =>
+      course.seatsLeft != null ? (
+        <span
+          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold ${
+            course.seatsLeft === 0
+              ? "bg-slate-100 text-slate-500 ring-1 ring-slate-200"
+              : course.seatsLeft <= 3
+                ? "bg-rose-50 text-rose-600 ring-1 ring-rose-200"
+                : course.seatsLeft <= 10
+                  ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
+                  : "bg-teal-50 text-teal-700 ring-1 ring-teal-200"
+          }`}
+        >
+          {course.seatsLeft === 0 ? "Complet" : course.seatsLeft}
+        </span>
+      ) : (
+        <span className="text-xs text-slate-300">—</span>
+      )
+  },
+  {
     key: "published",
     header: "Statut",
     sortable: true,

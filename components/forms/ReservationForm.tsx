@@ -20,7 +20,7 @@ import type { z } from "zod";
 import { useReservationDraft } from "@/components/forms/use-reservation-draft";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
+import { Dropdown } from "@/components/ui/Dropdown";
 import { Textarea } from "@/components/ui/Textarea";
 import { cn } from "@/lib/utils";
 import { reservationSchema } from "@/lib/validators/reservation";
@@ -342,17 +342,16 @@ function QuestionField({
       ) : null}
 
       {question.type === "select" && !question.allowMultiple ? (
-        <Select
-          onChange={(event) => onSelectSingle(event.target.value)}
+        <Dropdown
+          aria-label={question.label}
+          onChange={(next) => onSelectSingle(next)}
+          options={question.options.map((option) => ({
+            value: option,
+            label: option
+          }))}
+          placeholder="Sélectionner…"
           value={answer[0] ?? ""}
-        >
-          <option value="">Sélectionner…</option>
-          {question.options.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </Select>
+        />
       ) : null}
 
       {question.type === "select" && question.allowMultiple ? (

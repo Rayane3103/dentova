@@ -1,5 +1,7 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { connectToDatabase, hasDatabaseConfig } from "@/lib/db/connect";
+import { adminSignupUpdateSchema } from "@/lib/validators/admin-signup";
 import { ClientSignup } from "@/models/ClientSignup";
 
 export const runtime = "nodejs";
@@ -17,9 +19,10 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   const payload = await request.json().catch(() => null);
+  const parsed = adminSignupUpdateSchema.safeParse(payload);
 
-  if (!payload?.id || !payload?.status) {
-    return NextResponse.json({ error: "Invalid payload." }, { status: 422 });
+  if (!parsed.success) {
+    return NextResponse.json({ errors: parsed.error.flatten() }, { status: 422 });
   }
 
   if (!hasDatabaseConfig()) {
@@ -28,12 +31,16 @@ export async function PATCH(request: Request) {
 
   await connectToDatabase();
   const signup = await ClientSignup.findByIdAndUpdate(
-    payload.id,
-    { status: payload.status },
+    parsed.data.id,
+    { status: parsed.data.status },
     { new: true }
   );
 
-  return signup
-    ? NextResponse.json({ signup })
-    : NextResponse.json({ error: "Signup not found." }, { status: 404 });
+  if (!signup) {
+    return NextResponse.json({ error: "Signup not found." }, { status: 404 });
+  }
+
+  revalidatePath("/admin/signups");
+
+  return NextResponse.json({ signup });
 }

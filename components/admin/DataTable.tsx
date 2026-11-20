@@ -3,7 +3,7 @@
 import { ChevronDown, ChevronUp, ChevronsUpDown, Search } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
+import { Dropdown } from "@/components/ui/Dropdown";
 import { cn } from "@/lib/utils";
 
 export type DataTableColumn<T> = {
@@ -215,18 +215,18 @@ export function DataTable<T>({
             >
               Précédent
             </button>
-            <Select
-              className="h-8 w-auto text-xs"
-              onChange={(e) => setPage(Number(e.target.value))}
+            <Dropdown
+              aria-label="Aller a la page"
+              className="w-auto"
+              onChange={(next) => setPage(Number(next))}
+              options={Array.from({ length: totalPages }, (_, i) => ({
+                value: String(i),
+                label: String(i + 1)
+              }))}
               size="sm"
-              value={safePage}
-            >
-              {Array.from({ length: totalPages }, (_, i) => (
-                <option key={i} value={i}>
-                  {i + 1}
-                </option>
-              ))}
-            </Select>
+              triggerClassName="h-8 min-w-[64px] text-xs"
+              value={String(safePage)}
+            />
             <button
               className="dentova-focus inline-flex h-8 items-center rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-40"
               disabled={safePage >= totalPages - 1}

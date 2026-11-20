@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { ExportMenu } from "@/components/admin/ExportMenu";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { Dropdown, type DropdownOption } from "@/components/ui/Dropdown";
 import type { ExportColumn } from "@/lib/export/table-export";
 import { cn } from "@/lib/utils";
 
@@ -31,7 +32,35 @@ const statusLabels: Record<string, string> = {
   pending: "En attente",
   confirmed: "Confirmée",
   paid: "Payé",
-  cancelled: "Annulée"
+  cancelled: "Annulée",
+  spam: "Spam"
+};
+
+/** Signups and reservations carry different status sets on the same list. */
+const signupStatusOptions: DropdownOption[] = [
+  { value: "new", label: "Nouveau", dotClassName: "bg-blue-500" },
+  { value: "contacted", label: "Contacté", dotClassName: "bg-indigo-500" },
+  { value: "archived", label: "Archivé", dotClassName: "bg-slate-400" },
+  { value: "spam", label: "Spam", dotClassName: "bg-rose-500" }
+];
+
+const reservationStatusOptions: DropdownOption[] = [
+  { value: "pending", label: "En attente", dotClassName: "bg-amber-400" },
+  { value: "confirmed", label: "Confirmée", dotClassName: "bg-emerald-500" },
+  { value: "paid", label: "Payé", dotClassName: "bg-sky-500" },
+  { value: "cancelled", label: "Annulée", dotClassName: "bg-red-500" },
+  { value: "spam", label: "Spam", dotClassName: "bg-rose-500" }
+];
+
+const statusTriggerStyles: Record<string, string> = {
+  new: "border-blue-200 bg-blue-50 text-blue-700",
+  contacted: "border-indigo-200 bg-indigo-50 text-indigo-700",
+  archived: "border-slate-200 bg-slate-100 text-slate-500",
+  pending: "border-amber-200 bg-amber-50 text-amber-700",
+  confirmed: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  paid: "border-sky-200 bg-sky-50 text-sky-700",
+  cancelled: "border-red-200 bg-red-50 text-red-600",
+  spam: "border-rose-300 bg-rose-100 text-rose-700"
 };
 
 function formatDayOnly(value: string | undefined) {
@@ -75,6 +104,52 @@ export function SignupsList({ initialEntries }: { initialEntries: SignupEntry[] 
   const [entries, setEntries] = useState(initialEntries);
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "spam">("all");
+  const [savingId, setSavingId] = useState<string | null>(null);
+
+  const spamCount = entries.filter((entry) => entry.status === "spam").length;
+  const visibleEntries = entries.filter((entry) => {
+    if (statusFilter === "spam") return entry.status === "spam";
+    if (statusFilter === "active") return entry.status !== "spam";
+    return true;
+  });
+
+  const updateStatus = async (entry: SignupEntry, status: string) => {
+    const endpoint =
+      entry.kind === "course" ? "/api/admin/reservations" : "/api/admin/signups";
+    const key = `${entry.kind}-${entry.id}`;
+    const previous = entry.status;
+
+    setSavingId(key);
+    setEntries((current) =>
+      current.map((item) =>
+        item.id === entry.id && item.kind === entry.kind ? { ...item, status } : item
+      )
+    );
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: entry.id, status })
+      });
+      if (!response.ok) throw new Error("Status update failed");
+
+      toast.success(`Statut mis à jour : ${statusLabels[status] ?? status}.`);
+      router.refresh();
+    } catch {
+      setEntries((current) =>
+        current.map((item) =>
+          item.id === entry.id && item.kind === entry.kind
+            ? { ...item, status: previous }
+            : item
+        )
+      );
+      toast.error("Mise à jour impossible.");
+    } finally {
+      setSavingId(null);
+    }
+  };
 
   const confirmDelete = async () => {
     if (!pendingDelete) return;
@@ -118,19 +193,43 @@ export function SignupsList({ initialEntries }: { initialEntries: SignupEntry[] 
 
   return (
     <>
-      <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+      <div className="mb-3 flex flex-col gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs font-semibold text-slate-500">
-          {entries.length} inscription{entries.length !== 1 ? "s" : ""}
+          {visibleEntries.length} inscription{visibleEntries.length !== 1 ? "s" : ""}
+          {statusFilter !== "all" ? ` sur ${entries.length}` : ""}
         </p>
-        <ExportMenu
-          columns={signupExportColumns}
-          filename="dentova-inscriptions"
-          rows={entries}
-          title="Inscriptions"
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <Dropdown
+            aria-label="Filtrer les inscriptions"
+            className="w-full sm:w-48"
+            onChange={(next) => setStatusFilter(next as "all" | "active" | "spam")}
+            options={[
+              { value: "all", label: "Toutes", hint: `(${entries.length})` },
+              {
+                value: "active",
+                label: "Hors spam",
+                hint: `(${entries.length - spamCount})`
+              },
+              {
+                value: "spam",
+                label: "Spam uniquement",
+                hint: `(${spamCount})`,
+                dotClassName: "bg-rose-500"
+              }
+            ]}
+            size="sm"
+            value={statusFilter}
+          />
+          <ExportMenu
+            columns={signupExportColumns}
+            filename="dentova-inscriptions"
+            rows={visibleEntries}
+            title="Inscriptions"
+          />
+        </div>
       </div>
       <div className="space-y-3">
-        {entries.map((entry) => (
+        {visibleEntries.map((entry) => (
           <div
             className="group rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-slate-300 hover:shadow-md"
             key={`${entry.kind}-${entry.id}`}
@@ -169,7 +268,24 @@ export function SignupsList({ initialEntries }: { initialEntries: SignupEntry[] 
 
               <div className="flex shrink-0 items-center gap-2 sm:flex-col sm:items-end">
                 <div className="flex items-center gap-2">
-                  <StatusBadge variant={entry.status === "new" ? "new" : "read"} />
+                  <Dropdown
+                    aria-label={`Statut de ${entry.fullName}`}
+                    disabled={savingId === `${entry.kind}-${entry.id}`}
+                    onChange={(next) => void updateStatus(entry, next)}
+                    options={
+                      entry.kind === "course"
+                        ? reservationStatusOptions
+                        : signupStatusOptions
+                    }
+                    size="sm"
+                    tone="bare"
+                    triggerClassName={cn(
+                      "h-8 min-w-[124px] border px-2.5 text-xs font-bold uppercase tracking-wide",
+                      statusTriggerStyles[entry.status] ??
+                        "border-slate-200 bg-slate-100 text-slate-500"
+                    )}
+                    value={entry.status}
+                  />
                   {entry.createdAt && (
                     <span className="text-xs text-slate-400">
                       {new Date(entry.createdAt).toLocaleDateString("fr-FR", {

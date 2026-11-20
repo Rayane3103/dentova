@@ -34,10 +34,11 @@ export type ReservationStatusCounts = {
   confirmed: number;
   paid: number;
   cancelled: number;
+  spam: number;
 };
 
 export function emptyStatusCounts(): ReservationStatusCounts {
-  return { all: 0, pending: 0, confirmed: 0, paid: 0, cancelled: 0 };
+  return { all: 0, pending: 0, confirmed: 0, paid: 0, cancelled: 0, spam: 0 };
 }
 
 export function countsFromAggregate(
@@ -52,6 +53,7 @@ export function countsFromAggregate(
     if (entry._id === "confirmed") counts.confirmed = count;
     if (entry._id === "paid") counts.paid = count;
     if (entry._id === "cancelled") counts.cancelled = count;
+    if (entry._id === "spam") counts.spam = count;
   }
 
   return counts;
