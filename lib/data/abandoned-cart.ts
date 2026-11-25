@@ -5,8 +5,8 @@ export const ABANDON_THRESHOLD_MINUTES = 5;
 
 export const ABANDONED_CARTS_PAGE_SIZE = 25;
 
-/** Required reservation fields — drives the "x/4 champs" progress column. */
-const REQUIRED_FIELDS = ["fullName", "email", "phone", "wilaya"] as const;
+/** Required reservation fields — drives the "x/5 champs" progress column. */
+const REQUIRED_FIELDS = ["fullName", "email", "phone", "wilaya", "profession"] as const;
 
 export const ABANDONED_CART_TOTAL_FIELDS = REQUIRED_FIELDS.length;
 

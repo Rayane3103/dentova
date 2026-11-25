@@ -283,7 +283,7 @@ The highest-value path in the app. Four pieces, in order:
 - `POST /api/reservations/draft` upserts an `AbandonedCart` row **as the visitor types**, keyed `{ courseId, sessionKey }` (unique index). Client hook: [components/forms/use-reservation-draft.ts](components/forms/use-reservation-draft.ts)
 - "Abandoned" is **derived at query time**, never stored: `converted: false` plus `lastActivityAt` older than `ABANDON_THRESHOLD_MINUTES` (currently **5 minutes**, [lib/data/abandoned-cart.ts](lib/data/abandoned-cart.ts)). No cron job exists or is needed
 - On successful reservation, `markDraftConverted()` ([lib/data/abandoned-cart-convert.ts](lib/data/abandoned-cart-convert.ts)) flips `converted` and links `reservationId`
-- Admin UI at `/admin/abandoned-carts`; rows carry a `new | contacted | lost` status and an "x/4 champs" completeness column
+- Admin UI at `/admin/abandoned-carts`; rows carry a `new | contacted | lost` status and an "x/5 champs" completeness column
 
 ### 3. Reservation submit
 `POST /api/reservations` validates, creates the `Reservation`, then runs follow-up work inside Next's `after()` so the response is not blocked: marking the draft converted and syncing the Sheet.

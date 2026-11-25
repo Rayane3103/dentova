@@ -11,7 +11,10 @@ export const reservationSchema = z.object({
   email: z.string().email("Email invalide."),
   phone: z.string().min(6, "Telephone requis."),
   wilaya: z.string().min(2, "Wilaya requise."),
-  profession: z.string().optional(),
+  profession: z
+    .string({ required_error: "Profession requise." })
+    .trim()
+    .min(2, "Profession requise."),
   message: z.string().optional(),
   answers: z.array(reservationAnswerSchema).default([]),
   // Links this submission back to its abandoned-cart draft, if any.

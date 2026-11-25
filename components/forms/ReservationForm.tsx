@@ -240,9 +240,14 @@ export function ReservationForm({ course }: { course: Course }) {
             />
           </Field>
 
-          <Field icon={Briefcase} label="Profession">
+          <Field
+            error={errors.profession?.message}
+            icon={Briefcase}
+            label="Profession"
+            required
+          >
             <Input
-              placeholder="Votre profession (optionnel)"
+              placeholder="Votre profession"
               {...register("profession")}
             />
           </Field>
